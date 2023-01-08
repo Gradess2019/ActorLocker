@@ -5,8 +5,8 @@
 #include "ActorTreeItem.h"
 #include "Editor.h"
 #include "ISceneOutliner.h"
-#include "SceneOutlinerGutter.h"
 #include "ISceneOutlinerTreeItem.h"
+#include "SLockWidget.h"
 #include "Widgets/Views/STreeView.h"
 
 TMap<TWeakObjectPtr<AActor>, bool> FSceneOutlinerActorLocker::LockedActors = TMap<TWeakObjectPtr<AActor>, bool>();
@@ -40,10 +40,11 @@ const TSharedRef<SWidget> FSceneOutlinerActorLocker::ConstructRowWidget(FSceneOu
 		return SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.VAlign(VAlign_Center);
-			// [
-			// 	SNew(SLockWidget, SharedThis(this), WeakOutliner, TreeItem, &Row)
-			// ];
+			.VAlign(VAlign_Center)
+			.Padding(6.f, 0.f, 0.f, 0.f)
+			[
+				SNew(SLockWidget, SharedThis(this), WeakOutliner, TreeItem, &Row)
+			];
 	}
 	return SNullWidget::NullWidget;
 }
@@ -54,7 +55,6 @@ TWeakObjectPtr<AActor> FSceneOutlinerActorLocker::GetActorFromItem(const TWeakPt
 
 	const auto ActorItem = StaticCastWeakPtr<FActorTreeItem>(TreeItem);
 	const auto Actor = ActorItem.Pin()->Actor;
-	check(Actor.IsValid());
 
 	return Actor;
 }

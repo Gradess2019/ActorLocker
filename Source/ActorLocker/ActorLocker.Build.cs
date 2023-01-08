@@ -39,7 +39,9 @@ public class ActorLocker : ModuleRules
 				"Slate",
 				"SlateCore",
 				"Projects",
-				"SceneOutliner"
+				"SceneOutliner",
+				"UnrealEd",
+				"InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
