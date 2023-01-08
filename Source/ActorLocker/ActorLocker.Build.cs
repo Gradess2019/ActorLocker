@@ -38,7 +38,8 @@ public class ActorLocker : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"Projects"
+				"Projects",
+				"SceneOutliner"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
