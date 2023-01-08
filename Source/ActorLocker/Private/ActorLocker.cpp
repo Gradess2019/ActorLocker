@@ -1,20 +1,33 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ActorLocker.h"
-
-#define LOCTEXT_NAMESPACE "FActorLockerModule"
+#include "ActorLockerStyle.h"
+#include "SceneOutlinerActorLocker.h"
+#include "SceneOutlinerModule.h"
 
 void FActorLockerModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FActorLockerStyle::Initialize();
+	FActorLockerStyle::ReloadTextures();
+	
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
+
+	const auto ColumnVisibility = ESceneOutlinerColumnVisibility::Visible;
+	const auto PriorityIndex = 9;
+	const auto Factory = FCreateSceneOutlinerColumn::CreateLambda([](ISceneOutliner& SceneOutliner){ return MakeShareable(new FSceneOutlinerActorLocker(SceneOutliner)); });
+	const auto bCanBeHidden = false;
+	const auto FillSize = TOptional<float>();
+	const auto ColumnLabel = FSceneOutlinerActorLocker::Lock_Localized();
+	const auto ColumnInfo = FSceneOutlinerColumnInfo(ColumnVisibility, PriorityIndex, Factory, bCanBeHidden, FillSize, ColumnLabel);
+	SceneOutlinerModule.RegisterDefaultColumnType<FSceneOutlinerActorLocker>(ColumnInfo);
 }
 
 void FActorLockerModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-}
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
+	SceneOutlinerModule.UnRegisterColumnType<FSceneOutlinerActorLocker>();
 
-#undef LOCTEXT_NAMESPACE
+	FActorLockerStyle::Shutdown();
+}
 	
 IMPLEMENT_MODULE(FActorLockerModule, ActorLocker)

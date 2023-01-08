@@ -1,0 +1,73 @@
+﻿// Copyright Gradess Games. All Rights Reserved.
+
+#include "SceneOutlinerActorLocker.h"
+#include "ActorLockerStyle.h"
+#include "ActorTreeItem.h"
+#include "Editor.h"
+#include "ISceneOutliner.h"
+#include "SceneOutlinerGutter.h"
+#include "ISceneOutlinerTreeItem.h"
+#include "Widgets/Views/STreeView.h"
+
+TMap<TWeakObjectPtr<AActor>, bool> FSceneOutlinerActorLocker::LockedActors = TMap<TWeakObjectPtr<AActor>, bool>();
+
+FSceneOutlinerActorLocker::FSceneOutlinerActorLocker(ISceneOutliner& Outliner)
+{
+	WeakOutliner = StaticCastSharedRef<ISceneOutliner>(Outliner.AsShared());
+}
+
+SHeaderRow::FColumn::FArguments FSceneOutlinerActorLocker::ConstructHeaderRowColumn()
+{
+	return SHeaderRow::Column(GetColumnID())
+	       .FixedWidth(24.f)
+	       .HAlignHeader(HAlign_Center)
+	       .VAlignHeader(VAlign_Center)
+	       .HAlignCell(HAlign_Center)
+	       .VAlignCell(VAlign_Center)
+	       .DefaultTooltip(FText::FromName(GetColumnID()))
+	       .HeaderContentPadding(FMargin(0.f))
+			[
+				SNew(SImage)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Image(FActorLockerStyle::Get().GetBrush("SceneOutliner.LockClosed"))
+			];
+}
+
+const TSharedRef<SWidget> FSceneOutlinerActorLocker::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
+{
+	if (TreeItem->ShouldShowVisibilityState())
+	{
+		return SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center);
+			// [
+			// 	SNew(SLockWidget, SharedThis(this), WeakOutliner, TreeItem, &Row)
+			// ];
+	}
+	return SNullWidget::NullWidget;
+}
+
+TWeakObjectPtr<AActor> FSceneOutlinerActorLocker::GetActorFromItem(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const
+{
+	check(TreeItem.IsValid());
+
+	const auto ActorItem = StaticCastWeakPtr<FActorTreeItem>(TreeItem);
+	const auto Actor = ActorItem.Pin()->Actor;
+	check(Actor.IsValid());
+
+	return Actor;
+}
+
+bool FSceneOutlinerActorLocker::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const
+{
+	const auto Actor = GetActorFromItem(TreeItem);
+	const auto Data = LockedActors.Find(Actor);
+	return Data && *Data;
+}
+
+void FSceneOutlinerActorLocker::SetItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem, bool bLocked)
+{
+	const auto Actor = GetActorFromItem(TreeItem);
+	LockedActors.Add(Actor, bLocked);
+}
