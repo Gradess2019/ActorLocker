@@ -3,13 +3,9 @@
 #include "SceneOutlinerActorLocker.h"
 #include "ActorLockerStyle.h"
 #include "ActorTreeItem.h"
-#include "Editor.h"
 #include "ISceneOutliner.h"
 #include "ISceneOutlinerTreeItem.h"
 #include "SLockWidget.h"
-#include "Widgets/Views/STreeView.h"
-
-TMap<TWeakObjectPtr<AActor>, bool> FSceneOutlinerActorLocker::LockedActors = TMap<TWeakObjectPtr<AActor>, bool>();
 
 FSceneOutlinerActorLocker::FSceneOutlinerActorLocker(ISceneOutliner& Outliner)
 {
@@ -47,27 +43,4 @@ const TSharedRef<SWidget> FSceneOutlinerActorLocker::ConstructRowWidget(FSceneOu
 			];
 	}
 	return SNullWidget::NullWidget;
-}
-
-TWeakObjectPtr<AActor> FSceneOutlinerActorLocker::GetActorFromItem(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const
-{
-	check(TreeItem.IsValid());
-
-	const auto ActorItem = StaticCastWeakPtr<FActorTreeItem>(TreeItem);
-	const auto Actor = ActorItem.Pin()->Actor;
-
-	return Actor;
-}
-
-bool FSceneOutlinerActorLocker::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const
-{
-	const auto Actor = GetActorFromItem(TreeItem);
-	const auto Data = LockedActors.Find(Actor);
-	return Data && *Data;
-}
-
-void FSceneOutlinerActorLocker::SetItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem, bool bLocked)
-{
-	const auto Actor = GetActorFromItem(TreeItem);
-	LockedActors.Add(Actor, bLocked);
 }

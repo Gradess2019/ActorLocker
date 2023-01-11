@@ -7,6 +7,7 @@
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Views/STableRow.h"
 
+class UActorLockerManager;
 class FScopedTransaction;
 class ISceneOutliner;
 class FSceneOutlinerActorLocker;
@@ -27,6 +28,7 @@ protected:
 	TWeakPtr<FSceneOutlinerActorLocker> WeakColumn;
 	TWeakPtr<ISceneOutliner> WeakOutliner;
 	TWeakPtr<ISceneOutlinerTreeItem> WeakItem;
+	TWeakObjectPtr<UActorLockerManager> WeakActorManager;
 	
 	const STableRow<FSceneOutlinerTreeItemPtr>* Row = nullptr;
 	
@@ -42,7 +44,6 @@ protected:
 	virtual bool IsLocked() const;
 	virtual bool IsLocked(const TWeakPtr<ISceneOutlinerTreeItem>& Item, const TSharedPtr<FSceneOutlinerActorLocker>& Column) const;
 	virtual void SetIsLocked(const bool bNewLocked);
-	virtual void OnSetItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& Item, const bool bNewLocked);
 
 	FReply HandleClick();
 	virtual FReply OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;

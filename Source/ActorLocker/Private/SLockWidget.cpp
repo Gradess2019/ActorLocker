@@ -2,11 +2,13 @@
 
 
 #include "SLockWidget.h"
-
+#include "ActorLocker.h"
+#include "ActorLockerManager.h"
 #include "ActorLockerStyle.h"
 #include "ActorTreeItem.h"
 #include "Editor.h"
 #include "ISceneOutliner.h"
+#include "LevelTreeItem.h"
 #include "SceneOutlinerActorLocker.h"
 #include "SlateOptMacros.h"
 #include "Widgets/Views/STreeView.h"
@@ -20,6 +22,7 @@ void SLockWidget::Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerAct
 	WeakOutliner = InWeakOutliner;
 	WeakItem = InWeakItem;
 	Row = InRow;
+	WeakActorManager = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker").GetActorLockerManager();
 
 	SImage::Construct(
 		SImage::FArguments()
@@ -64,37 +67,17 @@ bool SLockWidget::IsLocked() const
 
 bool SLockWidget::IsLocked(const TWeakPtr<ISceneOutlinerTreeItem>& Item, const TSharedPtr<FSceneOutlinerActorLocker>& Column) const
 {
-	return Item.IsValid() && Column.IsValid() ? Column.Get()->IsItemLocked(Item) : false;
+	return Item.IsValid() && Column.IsValid() ? WeakActorManager.Get()->IsItemLocked(Item) : false;
 }
 
 void SLockWidget::SetIsLocked(const bool bNewLocked)
 {
 	const auto bLocked = IsLocked();
-	if (WeakItem.IsValid() && WeakOutliner.IsValid() && bLocked != bNewLocked)
+	if (WeakItem.IsValid() && WeakOutliner.IsValid() && WeakActorManager.IsValid() && bLocked != bNewLocked)
 	{
-		OnSetItemLocked(WeakItem, bNewLocked);
-			
+		WeakActorManager.Get()->SetLockTreeItem(WeakItem, bNewLocked);
 		WeakOutliner.Pin()->Refresh();
-
 		GEditor->RedrawAllViewports();
-	}
-}
-
-void SLockWidget::OnSetItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& Item, const bool bNewLocked)
-{
-	WeakColumn.Pin()->SetItemLocked(Item, bNewLocked);
-
-	TWeakPtr<FActorTreeItem> ActorItem = StaticCastWeakPtr<FActorTreeItem, ISceneOutlinerTreeItem>(Item);
-	
-	// TODO: Implement locking here
-	
-	for (auto& ChildPtr : Item.Pin()->GetChildren())
-	{
-		auto Child = ChildPtr.Pin();
-		if (Child.IsValid())
-		{
-			OnSetItemLocked(Child, bNewLocked);
-		}
 	}
 }
 
@@ -108,7 +91,7 @@ FReply SLockWidget::HandleClick()
 	const auto Outliner = WeakOutliner.Pin();
 	const auto TreeItem = WeakItem.Pin();
 	const auto Column = WeakColumn.Pin();
-		
+
 	if (!Outliner.IsValid() || !TreeItem.IsValid() || !Column.IsValid())
 	{
 		return FReply::Unhandled();
@@ -126,8 +109,8 @@ FReply SLockWidget::HandleClick()
 		{
 			if (IsLocked(SelectedItem, Column) != bNewLocked)
 			{
-				OnSetItemLocked(SelectedItem, bNewLocked);
-			}		
+				WeakActorManager.Get()->SetLockTreeItem(SelectedItem, bNewLocked);
+			}
 		}
 
 		GEditor->RedrawAllViewports();
