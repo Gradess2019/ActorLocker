@@ -48,10 +48,19 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 	if (bInLock)
 	{
 		LockedItems.Add(Id, InTreeItem);
+		
 	}
 	else
 	{
 		LockedItems.Remove(Id);
+	}
+
+	if (const auto ActorItem = InTreeItem.Pin()->CastTo<FActorTreeItem>())
+	{
+		if (const auto Actor = ActorItem->Actor.Get())
+		{
+			Actor->SetLockLocation(bInLock);
+		}
 	}
 
 	for (auto& ChildPtr : InTreeItem.Pin()->GetChildren())
