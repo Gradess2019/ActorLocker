@@ -23,7 +23,7 @@ public:
 	virtual void PostInitProperties() override;
 	virtual void BeginDestroy() override;
 
-	void SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock);
+	void SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren = true);
 	void UnlockById(const uint32 InId);
 	
 	uint32 GetIdFromTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const;
@@ -31,6 +31,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ActorLocker")
 	bool IsActorLocked(AActor* InActor) const;
 	bool IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const;
+
+	void CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem);
 
 	UFUNCTION(BlueprintPure, Category = "ActorLocker")
 	TSet<AActor*> GetLockedActors() const;

@@ -45,11 +45,15 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 	{
 		return;
 	}
-	
+
+	if (LockedItems.Contains(Id) == bInLock)
+	{
+		return;
+	}
+
 	if (bInLock)
 	{
 		LockedItems.Add(Id, InTreeItem);
-		
 	}
 	else
 	{
@@ -64,6 +68,12 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		}
 	}
 
+	if (!bPropagateToChildren)
+	{
+		CheckParentLock(InTreeItem);
+		return;
+	}
+
 	for (auto& ChildPtr : InTreeItem.Pin()->GetChildren())
 	{
 		auto Child = ChildPtr.Pin();
@@ -72,6 +82,8 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 			SetLockTreeItem(Child, bInLock);
 		}
 	}
+
+	CheckParentLock(InTreeItem);
 }
 
 void UActorLockerManager::UnlockById(const uint32 InId)
@@ -147,10 +159,41 @@ bool UActorLockerManager::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& I
 	return Id == 0 ? false : LockedItems.Contains(Id);
 }
 
+void UActorLockerManager::CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
+{
+	const auto ParentTreeItem = InTreeItem.Pin()->GetParent();
+	if (!ParentTreeItem.IsValid())
+	{
+		return;
+	}
+
+	// Folders, Level and Worlds tree items doesn't have its own visibility info
+	if (ParentTreeItem->HasVisibilityInfo())
+	{
+		return;
+	}
+
+	auto bAllChildrenLocked = true;
+	for (auto& ChildPtr : ParentTreeItem->GetChildren())
+	{
+		auto Child = ChildPtr.Pin();
+		if (Child.IsValid())
+		{
+			if (!IsItemLocked(Child))
+			{
+				bAllChildrenLocked = false;
+				break;
+			}
+		}
+	}
+
+	SetLockTreeItem(ParentTreeItem, bAllChildrenLocked, false);
+}
+
 TSet<AActor*> UActorLockerManager::GetLockedActors() const
 {
 	TSet<AActor*> LockedActors;
-	
+
 	for (auto It = LockedItems.CreateConstIterator(); It; ++It)
 	{
 		const auto Item = It.Value();
@@ -162,7 +205,8 @@ TSet<AActor*> UActorLockerManager::GetLockedActors() const
 				if (ActorTreeItem->Actor.IsValid())
 				{
 					LockedActors.Add(ActorTreeItem->Actor.Get());
-				} else
+				}
+				else
 				{
 					UE_LOG(LogActorLockerManager, Error, TEXT("Failed to get actor from tree item: %s"), *TreeItemPtr->GetDisplayString());
 				}
@@ -228,12 +272,12 @@ void UActorLockerManager::OnSelectionChanged(UObject* Object)
 	{
 		const auto Level = SelectedActor->GetLevel();
 		const auto bDefaultBrush = IsValid(Level) ? Level->GetDefaultBrush() == SelectedActor : false;
-		
+
 		if (IsActorLocked(SelectedActor) || bDefaultBrush)
 		{
 			Selection->Deselect(SelectedActor);
 		}
 	}
-	
+
 	UE_LOG(LogActorLockerManager, Log, TEXT("OnSelectionChanged: %s"), *Object->GetName());
 }
