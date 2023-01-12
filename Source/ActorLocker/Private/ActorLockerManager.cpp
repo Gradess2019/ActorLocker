@@ -21,6 +21,7 @@ void UActorLockerManager::PostInitProperties()
 
 	const auto Selection = GEditor->GetSelectedActors();
 	Selection->SelectObjectEvent.AddUObject(this, &UActorLockerManager::OnActorSelected);
+	Selection->SelectionChangedEvent.AddUObject(this, &UActorLockerManager::OnSelectionChanged);
 	GEngine->OnLevelActorDeleted().AddUObject(this, &UActorLockerManager::OnActorDeleted);
 }
 
@@ -200,4 +201,39 @@ void UActorLockerManager::OnActorDeleted(AActor* InActor)
 {
 	const auto Id = InActor->GetUniqueID();
 	LockedItems.Remove(Id);
+}
+
+void UActorLockerManager::OnSelectionChanged(UObject* Object)
+{
+	if (!IsValid(Object))
+	{
+		return;
+	}
+
+	auto Selection = Cast<USelection>(Object);
+	if (!IsValid(Selection))
+	{
+		return;
+	}
+
+	TArray<AActor*> SelectedActors;
+	Selection->GetSelectedObjects(SelectedActors);
+
+	if (SelectedActors.Num() == 0)
+	{
+		return;
+	}
+
+	for (const auto SelectedActor : SelectedActors)
+	{
+		const auto Level = SelectedActor->GetLevel();
+		const auto bDefaultBrush = IsValid(Level) ? Level->GetDefaultBrush() == SelectedActor : false;
+		
+		if (IsActorLocked(SelectedActor) || bDefaultBrush)
+		{
+			Selection->Deselect(SelectedActor);
+		}
+	}
+	
+	UE_LOG(LogActorLockerManager, Log, TEXT("OnSelectionChanged: %s"), *Object->GetName());
 }

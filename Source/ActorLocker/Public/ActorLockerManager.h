@@ -45,6 +45,8 @@ protected:
 	UFUNCTION()
 	void OnActorDeleted(AActor* InActor);
 
+	UFUNCTION()
+	void OnSelectionChanged(UObject* Object);
 };
 
 
