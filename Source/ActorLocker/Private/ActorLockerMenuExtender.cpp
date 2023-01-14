@@ -76,7 +76,7 @@ void FActorLockerMenuExtender::CreateActorLockerMenu(FMenuBuilder& MenuBuilder, 
 			TEXT("ActorLocker"),
 			LOCTEXT("Lock", "Lock selection"),
 			LOCTEXT("Lock_Tooltip", "Lock selected actors"),
-			FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.LockClosed")
+			FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.Lock")
 		);
 	}
 	else
@@ -87,7 +87,7 @@ void FActorLockerMenuExtender::CreateActorLockerMenu(FMenuBuilder& MenuBuilder, 
 			TEXT("ActorLocker"),
 			LOCTEXT("Unlock", "Unlock selection"),
 			LOCTEXT("Unlock_Tooltip", "Unlock selected actors"),
-			FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.LockOpened")
+			FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.Unlock")
 		);
 	}
 
@@ -96,7 +96,7 @@ void FActorLockerMenuExtender::CreateActorLockerMenu(FMenuBuilder& MenuBuilder, 
 		TEXT("ActorLocker"),
 		LOCTEXT("ToggleLock", "Toggle lock"),
 		LOCTEXT("ToggleLock_Tooltip", "Toggle lock for selected actors"),
-		FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.LockClosed")
+		FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.Lock")
 	);
 }
 
