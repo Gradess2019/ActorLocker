@@ -59,6 +59,67 @@ void UActorLockerManager::InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTre
 	Items.Add(Id, FLockerTreeItem(InTreeItem));
 }
 
+void UActorLockerManager::SetLockActor(AActor* InActor, const bool bInLock, const bool bPropagateToChildren)
+{
+	if (!IsValid(InActor))
+	{
+		return;
+	}
+
+	for (auto It = Items.CreateConstIterator(); It; ++It)
+	{
+		const auto& Item = It.Value();
+		if (!Item.IsValid())
+		{
+			continue;
+		}
+
+		if (const auto ActorTreeItem = Item.NativeItem.Pin()->CastTo<FActorTreeItem>())
+		{
+			if (ActorTreeItem->Actor == InActor)
+			{
+				SetLockTreeItem(Item, bInLock, bPropagateToChildren);
+				return;
+			}
+		}
+	}
+}
+
+void UActorLockerManager::ToggleLockedActors()
+{
+	// We need temp variable because ToggledItems set is cleared when user lock actor (@see SetLockTreeItem)
+	TSet<uint32> ToggledItemsTemp;
+
+	if (ToggledItems.Num() <= 0)
+	{
+		for (auto It = Items.CreateConstIterator(); It; ++It)
+		{
+			const auto& Item = It.Value();
+			if (Item.bLocked)
+			{
+				ToggledItemsTemp.Add(Item.GetId());
+			}
+		}
+
+		for (const auto Id : ToggledItemsTemp)
+		{
+			SetLockTreeItem(Items[Id], false, false);
+		}
+
+		ToggledItems = ToggledItemsTemp;
+	}
+	else
+	{
+		ToggledItemsTemp = ToggledItems;
+		for (const auto Id : ToggledItemsTemp)
+		{
+			SetLockTreeItem(Items[Id], true, false);
+		}
+
+		ToggledItems.Empty();
+	}
+}
+
 void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren)
 {
 	const auto Id = FLockerTreeItem::GetId(InTreeItem);
@@ -79,6 +140,8 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 	}
 
 	Items[Id].bLocked = bInLock;
+
+	ToggledItems.Empty();
 
 	if (const auto ActorItem = InTreeItem.Pin()->CastTo<FActorTreeItem>())
 	{
@@ -240,7 +303,7 @@ TSet<AActor*> UActorLockerManager::GetLockedActors() const
 UActorLockerManager* UActorLockerManager::GetActorLockerManager()
 {
 	const auto& ActorLockerModule = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
-	return ActorLockerModule.GetActorLockerManager();
+	return ActorLockerModule.GetActorLockerManager().Get();
 }
 
 void UActorLockerManager::OnActorSelected(UObject* InObject)

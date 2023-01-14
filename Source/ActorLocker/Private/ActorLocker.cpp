@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ActorLocker.h"
+#include "ActorLockerCommandManager.h"
 #include "ActorLockerManager.h"
 #include "ActorLockerStyle.h"
 #include "SceneOutlinerActorLocker.h"
@@ -22,6 +23,8 @@ void FActorLockerModule::StartupModule()
 	const auto ColumnLabel = FSceneOutlinerActorLocker::Lock_Localized();
 	const auto ColumnInfo = FSceneOutlinerColumnInfo(ColumnVisibility, PriorityIndex, Factory, bCanBeHidden, FillSize, ColumnLabel);
 	SceneOutlinerModule.RegisterDefaultColumnType<FSceneOutlinerActorLocker>(ColumnInfo);
+	
+	UActorLockerCommandManager::RegisterCommands();
 
 	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
 }
@@ -30,6 +33,8 @@ void FActorLockerModule::ShutdownModule()
 {
 	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
 	SceneOutlinerModule.UnRegisterColumnType<FSceneOutlinerActorLocker>();
+
+	UActorLockerCommandManager::UnregisterCommands();
 
 	FActorLockerStyle::Shutdown();
 }

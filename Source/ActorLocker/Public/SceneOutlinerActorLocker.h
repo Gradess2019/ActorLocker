@@ -6,6 +6,7 @@
 #include "SceneOutlinerGutter.h"
 #include "SceneOutlinerPublicTypes.h"
 #include "ISceneOutlinerColumn.h"
+
 #define LOCTEXT_NAMESPACE "SceneOutlinerLock"
 
 /**
@@ -27,3 +28,5 @@ public:
 	static FName GetID() { return Lock(); }
 	virtual FName GetColumnID() override { return GetID(); }
 };
+
+#undef LOCTEXT_NAMESPACE
