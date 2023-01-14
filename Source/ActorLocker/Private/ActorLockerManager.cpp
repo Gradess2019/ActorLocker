@@ -134,8 +134,14 @@ bool UActorLockerManager::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& I
 void UActorLockerManager::CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
 {
 	const auto ParentTreeItem = InTreeItem.Pin()->GetParent();
-	if (!ParentTreeItem.IsValid() || ParentTreeItem->IsA<FActorTreeItem>())
+	if (!ParentTreeItem.IsValid())
 	{
+		return;
+	}
+
+	if (ParentTreeItem->IsA<FActorTreeItem>())
+	{
+		CheckParentLock(ParentTreeItem);
 		return;
 	}
 
@@ -150,7 +156,7 @@ void UActorLockerManager::CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>
 
 bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeItem>& InParentTreeItem) const
 {
-	if (!InParentTreeItem.IsValid() || InParentTreeItem.Pin()->IsA<FActorTreeItem>())
+	if (!InParentTreeItem.IsValid())
 	{
 		return false;
 	}
@@ -161,6 +167,11 @@ bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeIt
 		if (Child.IsValid())
 		{
 			if (!IsItemLocked(Child))
+			{
+				return true;
+			}
+
+			if (Child->GetChildren().Num() >= 0 && IsAnyChildUnlocked(Child))
 			{
 				return true;
 			}
