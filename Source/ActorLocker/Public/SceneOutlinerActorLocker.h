@@ -14,8 +14,6 @@
 class ACTORLOCKER_API FSceneOutlinerActorLocker : public ISceneOutlinerColumn
 {
 protected:
-	static TMap<TWeakObjectPtr<AActor>, bool> LockedActors;
-	
 	TWeakPtr<ISceneOutliner> WeakOutliner;
 	
 public:
@@ -28,9 +26,4 @@ public:
 
 	static FName GetID() { return Lock(); }
 	virtual FName GetColumnID() override { return GetID(); }
-	virtual TWeakObjectPtr<AActor> GetActorFromItem(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const;
-
-	virtual bool IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem) const;
-	virtual void SetItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& TreeItem, bool bLocked);
-
 };
