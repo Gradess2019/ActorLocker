@@ -3,6 +3,7 @@
 #include "ActorLocker.h"
 #include "ActorLockerCommandManager.h"
 #include "ActorLockerManager.h"
+#include "ActorLockerMenuExtender.h"
 #include "ActorLockerStyle.h"
 #include "SceneOutlinerActorLocker.h"
 #include "SceneOutlinerModule.h"
@@ -26,6 +27,8 @@ void FActorLockerModule::StartupModule()
 	
 	UActorLockerCommandManager::RegisterCommands();
 
+	CreateActorLockerMenuExtender();
+
 	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
 }
 
@@ -34,6 +37,8 @@ void FActorLockerModule::ShutdownModule()
 	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
 	SceneOutlinerModule.UnRegisterColumnType<FSceneOutlinerActorLocker>();
 
+	DestroyActorLockerMenuExtender();
+	
 	UActorLockerCommandManager::UnregisterCommands();
 
 	FActorLockerStyle::Shutdown();
@@ -49,6 +54,17 @@ void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool 
 	
 	ActorLockerManager = NewObject<UActorLockerManager>();
 	ActorLockerManager->AddToRoot();
+}
+
+void FActorLockerModule::CreateActorLockerMenuExtender()
+{
+	MenuExtender = MakeShareable(new FActorLockerMenuExtender());
+	MenuExtender->AddLevelViewportMenuExtender();
+}
+
+void FActorLockerModule::DestroyActorLockerMenuExtender()
+{
+	MenuExtender.Reset();
 }
 
 IMPLEMENT_MODULE(FActorLockerModule, ActorLocker)
