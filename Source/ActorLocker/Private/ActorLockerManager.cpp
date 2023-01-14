@@ -240,7 +240,7 @@ TSet<AActor*> UActorLockerManager::GetLockedActors() const
 UActorLockerManager* UActorLockerManager::GetActorLockerManager()
 {
 	const auto& ActorLockerModule = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
-	return ActorLockerModule.GetActorLockerManager();
+	return ActorLockerModule.GetActorLockerManager().Get();
 }
 
 void UActorLockerManager::OnActorSelected(UObject* InObject)

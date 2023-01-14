@@ -17,7 +17,7 @@ public:
 	virtual void ShutdownModule() override;
 	//~ End IModuleInterface Interface
 
-	UActorLockerManager* GetActorLockerManager() const { return ActorLockerManager.Get(); }
+	TWeakObjectPtr<UActorLockerManager> GetActorLockerManager() const { return ActorLockerManager; }
 
 protected:
 	void CreateActorLockerManager(const FString& Filename, bool bAsTemplate);
