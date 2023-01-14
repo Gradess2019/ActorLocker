@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 
+class FActorLockerMenuExtender;
 class UActorLockerManager;
 
 class FActorLockerModule : public IModuleInterface
 {
 private:
 	TWeakObjectPtr<UActorLockerManager> ActorLockerManager;
+	TSharedPtr<FActorLockerMenuExtender> MenuExtender;
 	
 public:
 	//~ Begin IModuleInterface Interface
@@ -21,4 +23,7 @@ public:
 
 protected:
 	void CreateActorLockerManager(const FString& Filename, bool bAsTemplate);
+	void CreateActorLockerMenuExtender();
+	
+	void DestroyActorLockerMenuExtender();
 };
