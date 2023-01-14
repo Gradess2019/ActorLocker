@@ -33,6 +33,8 @@ public:
 	bool IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const;
 
 	void CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem);
+	bool IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeItem>& InParentTreeItem) const;
+	void UpdateLockState();
 
 	UFUNCTION(BlueprintPure, Category = "ActorLocker")
 	TSet<AActor*> GetLockedActors() const;
@@ -49,6 +51,9 @@ protected:
 
 	UFUNCTION()
 	void OnSelectionChanged(UObject* Object);
+
+	void OnPostTick(float InDeltaTime);
+	void OnInputEvent(const FSlateDebuggingInputEventArgs& SlateDebuggingInputEventArgs);
 };
 
 

@@ -8,6 +8,7 @@
 #include "LevelEditor.h"
 #include "LevelTreeItem.h"
 #include "Selection.h"
+#include "SOutlinerTreeView.h"
 #include "WorldTreeItem.h"
 
 void UActorLockerManager::PostInitProperties()
@@ -23,6 +24,7 @@ void UActorLockerManager::PostInitProperties()
 	Selection->SelectObjectEvent.AddUObject(this, &UActorLockerManager::OnActorSelected);
 	Selection->SelectionChangedEvent.AddUObject(this, &UActorLockerManager::OnSelectionChanged);
 	GEngine->OnLevelActorDeleted().AddUObject(this, &UActorLockerManager::OnActorDeleted);
+	FSlateDebugging::InputEvent.AddUObject(this, &UActorLockerManager::OnInputEvent);
 }
 
 void UActorLockerManager::BeginDestroy()
@@ -37,7 +39,7 @@ void UActorLockerManager::BeginDestroy()
 	UObject::BeginDestroy();
 }
 
-void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock)
+void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren)
 {
 	const auto Id = GetIdFromTreeItem(InTreeItem);
 
@@ -46,7 +48,7 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		return;
 	}
 
-	if (LockedItems.Contains(Id) == bInLock)
+	if (LockedItems.Contains(Id) == bInLock && LockedItems[Id].IsValid())
 	{
 		return;
 	}
@@ -68,18 +70,15 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		}
 	}
 
-	if (!bPropagateToChildren)
+	if (bPropagateToChildren)
 	{
-		CheckParentLock(InTreeItem);
-		return;
-	}
-
-	for (auto& ChildPtr : InTreeItem.Pin()->GetChildren())
-	{
-		auto Child = ChildPtr.Pin();
-		if (Child.IsValid())
+		for (auto& ChildPtr : InTreeItem.Pin()->GetChildren())
 		{
-			SetLockTreeItem(Child, bInLock);
+			auto Child = ChildPtr.Pin();
+			if (Child.IsValid())
+			{
+				SetLockTreeItem(Child, bInLock);
+			}
 		}
 	}
 
@@ -162,32 +161,65 @@ bool UActorLockerManager::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& I
 void UActorLockerManager::CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
 {
 	const auto ParentTreeItem = InTreeItem.Pin()->GetParent();
-	if (!ParentTreeItem.IsValid())
+	if (!ParentTreeItem.IsValid() || ParentTreeItem->IsA<FActorTreeItem>())
 	{
 		return;
 	}
 
-	// Folders, Level and Worlds tree items doesn't have its own visibility info
-	if (ParentTreeItem->HasVisibilityInfo())
-	{
-		return;
-	}
+	const auto bLocked = IsItemLocked(ParentTreeItem);
+	const auto bAllChildrenLocked = !IsAnyChildUnlocked(ParentTreeItem);
 
-	auto bAllChildrenLocked = true;
-	for (auto& ChildPtr : ParentTreeItem->GetChildren())
+	if (bLocked != bAllChildrenLocked)
+	{
+		SetLockTreeItem(ParentTreeItem, bAllChildrenLocked, false);
+	}
+}
+
+bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeItem>& InParentTreeItem) const
+{
+	if (!InParentTreeItem.IsValid() || InParentTreeItem.Pin()->IsA<FActorTreeItem>())
+	{
+		return false;
+	}
+	
+	for (auto& ChildPtr : InParentTreeItem.Pin()->GetChildren())
 	{
 		auto Child = ChildPtr.Pin();
 		if (Child.IsValid())
 		{
 			if (!IsItemLocked(Child))
 			{
-				bAllChildrenLocked = false;
-				break;
+				return true;
 			}
 		}
 	}
 
-	SetLockTreeItem(ParentTreeItem, bAllChildrenLocked, false);
+	return false;
+}
+
+void UActorLockerManager::UpdateLockState()
+{
+	TSet<TWeakPtr<ISceneOutlinerTreeItem>> CheckedParents;
+	for (auto It = LockedItems.CreateConstIterator(); It; ++It)
+	{
+		const auto Item = It.Value();
+		if (!Item.IsValid())
+		{
+			continue;
+		}
+		
+		const auto ItemPtr = Item.Pin();
+		const auto Children = ItemPtr->GetChildren();
+		const auto ParentItemPtr = ItemPtr->GetParent();
+			
+		if (!ParentItemPtr.IsValid() || CheckedParents.Contains(ParentItemPtr))
+		{
+			continue;
+		}
+			
+		CheckedParents.Add(ParentItemPtr);
+		CheckParentLock(ItemPtr);
+	}
 }
 
 TSet<AActor*> UActorLockerManager::GetLockedActors() const
@@ -280,4 +312,32 @@ void UActorLockerManager::OnSelectionChanged(UObject* Object)
 	}
 
 	UE_LOG(LogActorLockerManager, Log, TEXT("OnSelectionChanged: %s"), *Object->GetName());
+}
+
+void UActorLockerManager::OnPostTick(float InDeltaTime)
+{
+	FSlateApplication::Get().OnPostTick().RemoveAll(this);
+	UpdateLockState();
+}
+
+void UActorLockerManager::OnInputEvent(const FSlateDebuggingInputEventArgs& SlateDebuggingInputEventArgs)
+{
+	if (SlateDebuggingInputEventArgs.InputEventType != ESlateDebuggingInputEvent::DragDrop)
+	{
+		return;
+	}
+
+	const auto Widget = SlateDebuggingInputEventArgs.HandlerWidget;
+	if (!Widget.IsValid())
+	{
+		return;
+	}
+
+	if (auto OutlinerTreeRow = StaticCastSharedPtr<SSceneOutlinerTreeRow>(Widget))
+	{
+		if (!FSlateApplication::Get().OnPostTick().IsBoundToObject(this))
+		{
+			FSlateApplication::Get().OnPostTick().AddUObject(this, &UActorLockerManager::OnPostTick);
+		}
+	}
 }
