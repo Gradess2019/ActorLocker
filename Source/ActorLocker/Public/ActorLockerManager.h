@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActorLockerTypes.h"
 #include "UObject/Object.h"
 #include "ActorLockerManager.generated.h"
 
@@ -17,16 +18,15 @@ class ACTORLOCKER_API UActorLockerManager : public UObject
 	GENERATED_BODY()
 
 protected:
-	TMap<uint32, TWeakPtr<ISceneOutlinerTreeItem>> LockedItems;
+	TMap<uint32, FLockerTreeItem> Items;
 
 public:
 	virtual void PostInitProperties() override;
 	virtual void BeginDestroy() override;
 
+	void InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem);
 	void SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren = true);
 	void UnlockById(const uint32 InId);
-	
-	uint32 GetIdFromTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const;
 	
 	UFUNCTION(BlueprintPure, Category = "ActorLocker")
 	bool IsActorLocked(AActor* InActor) const;

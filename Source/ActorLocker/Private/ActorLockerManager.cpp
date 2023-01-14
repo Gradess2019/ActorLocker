@@ -39,28 +39,46 @@ void UActorLockerManager::BeginDestroy()
 	UObject::BeginDestroy();
 }
 
+void UActorLockerManager::InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
+{
+	const auto Id = FLockerTreeItem::GetId(InTreeItem);
+
+	if (Items.Contains(Id))
+	{
+		if (!Items[Id].IsValid())
+		{
+			FLockerTreeItem NewItem(InTreeItem);
+			const auto& OutdatedItem = Items[Id];
+			NewItem.bLocked = OutdatedItem.bLocked;
+			Items.Add(Id, NewItem);
+		}
+
+		return;
+	}
+
+	Items.Add(Id, FLockerTreeItem(InTreeItem));
+}
+
 void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren)
 {
-	const auto Id = GetIdFromTreeItem(InTreeItem);
+	const auto Id = FLockerTreeItem::GetId(InTreeItem);
 
 	if (Id == 0)
 	{
 		return;
 	}
 
-	if (LockedItems.Contains(Id) == bInLock && LockedItems[Id].IsValid())
+	if (!Items.Contains(Id) || !Items[Id].IsValid())
+	{
+		InitItem(InTreeItem);
+	}
+
+	if (Items[Id].bLocked == bInLock)
 	{
 		return;
 	}
 
-	if (bInLock)
-	{
-		LockedItems.Add(Id, InTreeItem);
-	}
-	else
-	{
-		LockedItems.Remove(Id);
-	}
+	Items[Id].bLocked = bInLock;
 
 	if (const auto ActorItem = InTreeItem.Pin()->CastTo<FActorTreeItem>())
 	{
@@ -87,58 +105,13 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 
 void UActorLockerManager::UnlockById(const uint32 InId)
 {
-	if (!LockedItems.Contains(InId))
+	if (!Items.Contains(InId))
 	{
 		return;
 	}
 
-	const auto Item = LockedItems[InId];
-	if (Item.IsValid())
-	{
-		SetLockTreeItem(Item, false);
-	}
-	else
-	{
-		LockedItems.Remove(InId);
-	}
-}
-
-uint32 UActorLockerManager::GetIdFromTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const
-{
-	if (!InTreeItem.IsValid())
-	{
-		return 0;
-	}
-
-	const auto TreeItemPtr = InTreeItem.Pin();
-	if (const auto ActorTreeItem = TreeItemPtr->CastTo<FActorTreeItem>())
-	{
-		if (ActorTreeItem->Actor.IsValid())
-		{
-			return ActorTreeItem->Actor->GetUniqueID();
-		}
-	}
-	else if (const auto LevelTreeItem = TreeItemPtr->CastTo<FLevelTreeItem>())
-	{
-		if (LevelTreeItem->Level.IsValid())
-		{
-			return LevelTreeItem->Level->GetUniqueID();
-		}
-	}
-	else if (const auto WorldTreeItem = TreeItemPtr->CastTo<FWorldTreeItem>())
-	{
-		if (WorldTreeItem->World.IsValid())
-		{
-			return WorldTreeItem->World->GetUniqueID();
-		}
-	}
-	else if (const auto FolderTreeItem = TreeItemPtr->CastTo<FFolderTreeItem>())
-	{
-		return FolderTreeItem->GetID().CalculateTypeHash();
-	}
-
-	UE_LOG(LogActorLockerManager, Error, TEXT("Failed to get id from tree item: %s"), *TreeItemPtr->GetDisplayString());
-	return 0;
+	const auto Item = Items[InId];
+	SetLockTreeItem(Item, false);
 }
 
 bool UActorLockerManager::IsActorLocked(AActor* InActor) const
@@ -149,13 +122,13 @@ bool UActorLockerManager::IsActorLocked(AActor* InActor) const
 	}
 
 	const auto ActorId = InActor->GetUniqueID();
-	return LockedItems.Contains(ActorId);
+	return Items.Contains(ActorId) && Items[ActorId].bLocked;
 }
 
 bool UActorLockerManager::IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const
 {
-	const auto Id = GetIdFromTreeItem(InTreeItem);
-	return Id == 0 ? false : LockedItems.Contains(Id);
+	const auto Id = FLockerTreeItem::GetId(InTreeItem);
+	return Id == 0 ? false : Items.Contains(Id) && Items[Id].bLocked;
 }
 
 void UActorLockerManager::CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
@@ -181,7 +154,7 @@ bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeIt
 	{
 		return false;
 	}
-	
+
 	for (auto& ChildPtr : InParentTreeItem.Pin()->GetChildren())
 	{
 		auto Child = ChildPtr.Pin();
@@ -200,23 +173,23 @@ bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeIt
 void UActorLockerManager::UpdateLockState()
 {
 	TSet<TWeakPtr<ISceneOutlinerTreeItem>> CheckedParents;
-	for (auto It = LockedItems.CreateConstIterator(); It; ++It)
+	for (auto It = Items.CreateConstIterator(); It; ++It)
 	{
 		const auto Item = It.Value();
 		if (!Item.IsValid())
 		{
 			continue;
 		}
-		
-		const auto ItemPtr = Item.Pin();
+
+		const auto ItemPtr = Item.NativeItem.Pin();
 		const auto Children = ItemPtr->GetChildren();
 		const auto ParentItemPtr = ItemPtr->GetParent();
-			
+
 		if (!ParentItemPtr.IsValid() || CheckedParents.Contains(ParentItemPtr))
 		{
 			continue;
 		}
-			
+
 		CheckedParents.Add(ParentItemPtr);
 		CheckParentLock(ItemPtr);
 	}
@@ -226,12 +199,12 @@ TSet<AActor*> UActorLockerManager::GetLockedActors() const
 {
 	TSet<AActor*> LockedActors;
 
-	for (auto It = LockedItems.CreateConstIterator(); It; ++It)
+	for (auto It = Items.CreateConstIterator(); It; ++It)
 	{
 		const auto Item = It.Value();
 		if (Item.IsValid())
 		{
-			const auto TreeItemPtr = Item.Pin();
+			const auto TreeItemPtr = Item.NativeItem.Pin();
 			if (const auto ActorTreeItem = TreeItemPtr->CastTo<FActorTreeItem>())
 			{
 				if (ActorTreeItem->Actor.IsValid())
@@ -276,7 +249,7 @@ void UActorLockerManager::OnActorSelected(UObject* InObject)
 void UActorLockerManager::OnActorDeleted(AActor* InActor)
 {
 	const auto Id = InActor->GetUniqueID();
-	LockedItems.Remove(Id);
+	Items.Remove(Id);
 }
 
 void UActorLockerManager::OnSelectionChanged(UObject* Object)

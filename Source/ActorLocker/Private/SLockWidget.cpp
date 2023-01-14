@@ -6,6 +6,7 @@
 #include "ActorLockerManager.h"
 #include "ActorLockerStyle.h"
 #include "ActorTreeItem.h"
+#include "ActorLockerTypes.h"
 #include "Editor.h"
 #include "ISceneOutliner.h"
 #include "LevelTreeItem.h"
@@ -23,6 +24,15 @@ void SLockWidget::Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerAct
 	WeakItem = InWeakItem;
 	Row = InRow;
 	WeakActorManager = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker").GetActorLockerManager();
+
+	if (WeakActorManager.IsValid())
+	{
+		WeakActorManager->InitItem(WeakItem);
+	}
+	else
+	{
+		UE_LOG(LogLockWidget, Error, TEXT("ActorManager is not valid in %s"), *WeakItem.Pin()->GetDisplayString());
+	}
 
 	SImage::Construct(
 		SImage::FArguments()
