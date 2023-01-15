@@ -1,7 +1,6 @@
 ﻿// Copyright Gradess Games. All Rights Reserved.
 
 #include "ActorLockerTypes.h"
-
 #include "ActorTreeItem.h"
 #include "FolderTreeItem.h"
 #include "LevelTreeItem.h"
