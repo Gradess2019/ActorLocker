@@ -247,6 +247,7 @@ bool UActorLockerManager::IsAnyChildUnlocked(const TWeakPtr<ISceneOutlinerTreeIt
 void UActorLockerManager::UpdateLockState()
 {
 	TSet<TWeakPtr<ISceneOutlinerTreeItem>> CheckedParents;
+	TSet<TWeakPtr<ISceneOutlinerTreeItem>> ItemsToCheck;
 	for (auto It = Items.CreateConstIterator(); It; ++It)
 	{
 		const auto Item = It.Value();
@@ -256,7 +257,6 @@ void UActorLockerManager::UpdateLockState()
 		}
 
 		const auto ItemPtr = Item.NativeItem.Pin();
-		const auto Children = ItemPtr->GetChildren();
 		const auto ParentItemPtr = ItemPtr->GetParent();
 
 		if (!ParentItemPtr.IsValid() || CheckedParents.Contains(ParentItemPtr))
@@ -265,7 +265,12 @@ void UActorLockerManager::UpdateLockState()
 		}
 
 		CheckedParents.Add(ParentItemPtr);
-		CheckParentLock(ItemPtr);
+		ItemsToCheck.Add(Item);
+	}
+
+	for (const auto& Item : ItemsToCheck)
+	{
+		CheckParentLock(Item);
 	}
 }
 
