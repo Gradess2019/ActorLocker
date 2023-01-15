@@ -4,7 +4,7 @@
 Simple plugin that lets you lock actor in the Level Editor so you can't move or select it.
 
 ## How to install
-1. Download [latest release](https://github.com/Gradess2019/Actor-Locker/releases/latest) for your Unreal Engine version
+1. Download [latest release](https://github.com/Gradess2019/ActorLocker/releases/latest) for your Unreal Engine version
 2. Unzip into: **\<ProjectDirectory\>/Plugins** (create Plugins directory if it doesn't exist)
 3. If you are using C++: Right Mouse Button on your **.uproject** file -> Generate Visual Studio project files
 4. Launch project
