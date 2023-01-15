@@ -1,7 +1,6 @@
 ﻿// Copyright Gradess Games. All Rights Reserved.
 
 #include "ActorLockerMenuExtender.h"
-
 #include "ActorLockerCommandManager.h"
 #include "ActorLockerCommands.h"
 #include "ActorLockerManager.h"

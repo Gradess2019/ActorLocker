@@ -37,7 +37,7 @@ const TSharedRef<SWidget> FSceneOutlinerActorLocker::ConstructRowWidget(FSceneOu
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
-			.Padding(6.f, 0.f, 0.f, 0.f)
+			.Padding(2.f, 0.f, 0.f, 0.f)
 			[
 				SNew(SLockWidget, SharedThis(this), WeakOutliner, TreeItem, &Row)
 			];

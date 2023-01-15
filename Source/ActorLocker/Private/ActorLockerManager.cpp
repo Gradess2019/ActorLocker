@@ -152,6 +152,14 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		if (const auto Actor = ActorItem->Actor.Get())
 		{
 			Actor->SetLockLocation(bInLock);
+
+			if (bInLock)
+			{
+				if (const auto Selection = GEditor->GetSelectedActors())
+				{
+					Selection->Deselect(Actor);
+				}
+			}
 		}
 	}
 
@@ -366,8 +374,6 @@ void UActorLockerManager::OnSelectionChanged(UObject* Object)
 			Selection->Deselect(SelectedActor);
 		}
 	}
-
-	UE_LOG(LogActorLockerManager, Log, TEXT("OnSelectionChanged: %s"), *Object->GetName());
 }
 
 void UActorLockerManager::OnPostTick(float InDeltaTime)

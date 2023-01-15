@@ -162,8 +162,4 @@ FReply SLockWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerE
 	return FReply::Unhandled();
 }
 
-void SLockWidget::OnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent)
-{
-}
-
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION

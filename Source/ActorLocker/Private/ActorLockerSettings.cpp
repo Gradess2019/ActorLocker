@@ -9,5 +9,5 @@ UActorLockerSettings::UActorLockerSettings()
 	UnlockObject = FInputChord(EKeys::Period, EModifierKey::Alt);
 	LockAllObjects = FInputChord(EKeys::Comma, EModifierKey::Alt | EModifierKey::Shift);
 	UnlockAllObjects = FInputChord(EKeys::Period, EModifierKey::Alt | EModifierKey::Shift);
-	ToggleLockedObjects = FInputChord(EKeys::M, EModifierKey::Alt);
+	ToggleLockedObjects = FInputChord(EKeys::Slash, EModifierKey::Alt);
 }
