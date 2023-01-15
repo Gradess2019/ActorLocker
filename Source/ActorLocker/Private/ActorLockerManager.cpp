@@ -152,6 +152,14 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		if (const auto Actor = ActorItem->Actor.Get())
 		{
 			Actor->SetLockLocation(bInLock);
+
+			if (bInLock)
+			{
+				if (const auto Selection = GEditor->GetSelectedActors())
+				{
+					Selection->Deselect(Actor);
+				}
+			}
 		}
 	}
 
