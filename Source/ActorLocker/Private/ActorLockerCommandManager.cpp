@@ -56,28 +56,42 @@ void UActorLockerCommandManager::UnregisterCommands()
 
 void UActorLockerCommandManager::LockObject()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("Lock object")));
 	SetLockActors(true);
+	GEditor->EndTransaction();
 }
 
 void UActorLockerCommandManager::UnlockObject()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("Unlock object")));
 	SetLockActors(false);
+	GEditor->EndTransaction();
 }
 
 void UActorLockerCommandManager::LockAllObjects()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("Lock all objects")));
 	SetLockAllActors(true);
+	GEditor->EndTransaction();
 }
 
 void UActorLockerCommandManager::UnlockAllObjects()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("Unlock all objects")));
 	SetLockAllActors(false);
+	GEditor->EndTransaction();
 }
 
 void UActorLockerCommandManager::ToggleLockedObjects()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("Toggle locked objects")));
+
 	const auto ActorLockerManager = UActorLockerManager::GetActorLockerManager();
+
+	SaveToTransactionBuffer(ActorLockerManager, false);
 	ActorLockerManager->ToggleLockedActors();
+	
+	GEditor->EndTransaction();
 }
 
 bool UActorLockerCommandManager::CanLockObject()
@@ -107,7 +121,8 @@ bool UActorLockerCommandManager::CanToggleLockedObjects()
 
 void UActorLockerCommandManager::SetLockActors(const bool bInLock)
 {
-	const auto ActorLockerManager = UActorLockerManager::GetActorLockerManager();
+	auto ActorLockerManager = UActorLockerManager::GetActorLockerManager();
+	SaveToTransactionBuffer(ActorLockerManager, false);
 
 	if (const auto Selection = GEditor->GetSelectedActors())
 	{
@@ -126,6 +141,8 @@ void UActorLockerCommandManager::SetLockAllActors(const bool bInLock)
 	const auto ActorLockerManager = UActorLockerManager::GetActorLockerManager();
 	const auto World = GEditor->GetEditorWorldContext().World();
 
+	SaveToTransactionBuffer(ActorLockerManager, false);
+	
 	for (TActorIterator<AActor> ActorIterator(World); ActorIterator; ++ActorIterator)
 	{
 		ActorLockerManager->SetLockActor(*ActorIterator, bInLock);

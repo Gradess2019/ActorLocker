@@ -36,6 +36,12 @@ public:
 	{
 		return NativeItem.IsValid();
 	}
+
+	friend FArchive& operator<<(FArchive& Archive, FLockerTreeItem& Item)
+	{
+		Archive << Item.bLocked;
+		return Archive;
+	}
 	
 	operator TSharedPtr<ISceneOutlinerTreeItem>() const
 	{
