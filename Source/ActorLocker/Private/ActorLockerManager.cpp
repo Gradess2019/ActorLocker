@@ -374,8 +374,6 @@ void UActorLockerManager::OnSelectionChanged(UObject* Object)
 			Selection->Deselect(SelectedActor);
 		}
 	}
-
-	UE_LOG(LogActorLockerManager, Log, TEXT("OnSelectionChanged: %s"), *Object->GetName());
 }
 
 void UActorLockerManager::OnPostTick(float InDeltaTime)
