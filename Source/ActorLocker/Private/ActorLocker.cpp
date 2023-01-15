@@ -1,20 +1,81 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ActorLocker.h"
-
-#define LOCTEXT_NAMESPACE "FActorLockerModule"
+#include "ActorLockerCommandManager.h"
+#include "ActorLockerManager.h"
+#include "ActorLockerMenuExtender.h"
+#include "ActorLockerSettings.h"
+#include "ActorLockerStyle.h"
+#include "ISettingsModule.h"
+#include "SceneOutlinerActorLocker.h"
+#include "SceneOutlinerModule.h"
+#include "Selection.h"
 
 void FActorLockerModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FActorLockerStyle::Initialize();
+	FActorLockerStyle::ReloadTextures();
+	
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
+
+	const auto ColumnVisibility = ESceneOutlinerColumnVisibility::Visible;
+	const auto PriorityIndex = 9;
+	const auto Factory = FCreateSceneOutlinerColumn::CreateLambda([](ISceneOutliner& SceneOutliner){ return MakeShareable(new FSceneOutlinerActorLocker(SceneOutliner)); });
+	const auto bCanBeHidden = false;
+	const auto FillSize = TOptional<float>();
+	const auto ColumnLabel = FSceneOutlinerActorLocker::Lock_Localized();
+	const auto ColumnInfo = FSceneOutlinerColumnInfo(ColumnVisibility, PriorityIndex, Factory, bCanBeHidden, FillSize, ColumnLabel);
+	SceneOutlinerModule.RegisterDefaultColumnType<FSceneOutlinerActorLocker>(ColumnInfo);
+
+	if (const auto SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->RegisterSettings("Editor", "Plugins", "ActorLocker",
+			NSLOCTEXT("ActorLocker", "ActorLockerSettingsDisplayName", "Actor Locker"),
+			NSLOCTEXT("ActorLocker", "ActorLockerSettingsDescription", "Configure the Actor Locker plugin (needs restart)"),
+			GetMutableDefault<UActorLockerSettings>()
+		);
+	}
+	
+	UActorLockerCommandManager::RegisterCommands();
+
+	CreateActorLockerMenuExtender();
+
+	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
 }
 
 void FActorLockerModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked<FSceneOutlinerModule>("SceneOutliner");
+	SceneOutlinerModule.UnRegisterColumnType<FSceneOutlinerActorLocker>();
+
+	DestroyActorLockerMenuExtender();
+	
+	UActorLockerCommandManager::UnregisterCommands();
+
+	FActorLockerStyle::Shutdown();
 }
 
-#undef LOCTEXT_NAMESPACE
+void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
+{
+	if (ActorLockerManager.IsValid())
+	{
+		ActorLockerManager->RemoveFromRoot();
+		ActorLockerManager->MarkAsGarbage();
+	}
 	
+	ActorLockerManager = NewObject<UActorLockerManager>();
+	ActorLockerManager->AddToRoot();
+}
+
+void FActorLockerModule::CreateActorLockerMenuExtender()
+{
+	MenuExtender = MakeShareable(new FActorLockerMenuExtender());
+	MenuExtender->AddLevelViewportMenuExtender();
+}
+
+void FActorLockerModule::DestroyActorLockerMenuExtender()
+{
+	MenuExtender.Reset();
+}
+
 IMPLEMENT_MODULE(FActorLockerModule, ActorLocker)
