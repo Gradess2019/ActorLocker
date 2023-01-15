@@ -8,7 +8,6 @@
 #include "Widgets/Views/STableRow.h"
 
 class UActorLockerManager;
-class FScopedTransaction;
 class ISceneOutliner;
 class FSceneOutlinerActorLocker;
 struct ISceneOutlinerTreeItem;
@@ -23,8 +22,6 @@ public:
 	SLATE_END_ARGS()
 
 protected:
-	TUniquePtr<FScopedTransaction> UndoTransaction;
-	
 	TWeakPtr<FSceneOutlinerActorLocker> WeakColumn;
 	TWeakPtr<ISceneOutliner> WeakOutliner;
 	TWeakPtr<ISceneOutlinerTreeItem> WeakItem;

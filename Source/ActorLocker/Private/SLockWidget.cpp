@@ -106,11 +106,13 @@ FReply SLockWidget::HandleClick()
 	{
 		return FReply::Unhandled();
 	}
-
-	UndoTransaction.Reset(new FScopedTransaction(NSLOCTEXT("SceneOutlineActorLock", "SetOutlinerItemLock", "Set Item Lock")));
-
+	
 	const auto& Tree = Outliner->GetTree();
 	const bool bNewLocked = !IsLocked();
+
+	const auto TransactionName = bNewLocked ? TEXT("Lock object") : TEXT("Unlock object");
+	GEditor->BeginTransaction(FText::FromString(TransactionName));
+	SaveToTransactionBuffer(WeakActorManager.Get(), false);
 
 	// We operate on all the selected items if the specified item is selected
 	if (Tree.IsItemSelected(TreeItem.ToSharedRef()))
@@ -130,7 +132,9 @@ FReply SLockWidget::HandleClick()
 		SetIsLocked(bNewLocked);
 	}
 
-	return FReply::Unhandled();
+	GEditor->EndTransaction();
+
+	return FReply::Handled();
 }
 
 FReply SLockWidget::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
@@ -152,7 +156,6 @@ FReply SLockWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerE
 {
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		UndoTransaction.Reset();
 		return FReply::Handled();
 	}
 
@@ -161,7 +164,6 @@ FReply SLockWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerE
 
 void SLockWidget::OnMouseCaptureLost(const FCaptureLostEvent& CaptureLostEvent)
 {
-	UndoTransaction.Reset();
 }
 
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION

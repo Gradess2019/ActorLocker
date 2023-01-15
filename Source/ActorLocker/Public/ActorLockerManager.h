@@ -24,6 +24,7 @@ protected:
 public:
 	virtual void PostInitProperties() override;
 	virtual void BeginDestroy() override;
+	virtual void Serialize(FArchive& Ar) override;
 
 	void InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem);
 	void SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem, const bool bInLock, const bool bPropagateToChildren = true);

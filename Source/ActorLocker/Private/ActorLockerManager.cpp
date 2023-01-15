@@ -1,7 +1,6 @@
 ﻿// Copyright Gradess Games. All Rights Reserved.
 
 #include "ActorLockerManager.h"
-#include "ActorFolderTreeItem.h"
 #include "ActorLocker.h"
 #include "ActorLockerTypes.h"
 #include "ActorTreeItem.h"
@@ -9,7 +8,6 @@
 #include "LevelTreeItem.h"
 #include "Selection.h"
 #include "SOutlinerTreeView.h"
-#include "WorldTreeItem.h"
 
 void UActorLockerManager::PostInitProperties()
 {
@@ -19,6 +17,8 @@ void UActorLockerManager::PostInitProperties()
 	{
 		return;
 	}
+
+	SetFlags(RF_Transactional);
 
 	const auto Selection = GEditor->GetSelectedActors();
 	Selection->SelectObjectEvent.AddUObject(this, &UActorLockerManager::OnActorSelected);
@@ -39,24 +39,28 @@ void UActorLockerManager::BeginDestroy()
 	UObject::BeginDestroy();
 }
 
+void UActorLockerManager::Serialize(FArchive& Ar)
+{
+	UObject::Serialize(Ar);
+
+	if (Ar.IsTransacting())
+	{
+		Ar << Items;
+	}
+}
+
 void UActorLockerManager::InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem)
 {
 	const auto Id = FLockerTreeItem::GetId(InTreeItem);
 
+	FLockerTreeItem NewItem(InTreeItem);
 	if (Items.Contains(Id))
 	{
-		if (!Items[Id].IsValid())
-		{
-			FLockerTreeItem NewItem(InTreeItem);
-			const auto& OutdatedItem = Items[Id];
-			NewItem.bLocked = OutdatedItem.bLocked;
-			Items.Add(Id, NewItem);
-		}
-
-		return;
+		const auto& OutdatedItem = Items[Id];
+		NewItem.bLocked = OutdatedItem.bLocked;
 	}
 
-	Items.Add(Id, FLockerTreeItem(InTreeItem));
+	Items.Add(Id, NewItem);
 }
 
 void UActorLockerManager::SetLockActor(AActor* InActor, const bool bInLock, const bool bPropagateToChildren)
