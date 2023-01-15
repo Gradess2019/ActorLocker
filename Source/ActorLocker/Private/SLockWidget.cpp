@@ -65,9 +65,9 @@ const FSlateBrush* SLockWidget::GetBrush() const
 {
 	if (IsLocked())
 	{
-		return FActorLockerStyle::Get().GetBrush(TEXT("SceneOutliner.LockClosed"));
+		return FActorLockerStyle::Get().GetBrush(TEXT("SceneOutliner.Lock"));
 	}
-	return FActorLockerStyle::Get().GetBrush(TEXT("SceneOutliner.LockOpened"));
+	return FActorLockerStyle::Get().GetBrush(TEXT("SceneOutliner.Unlock"));
 }
 
 bool SLockWidget::IsLocked() const

@@ -52,10 +52,10 @@ TSharedRef<FSlateStyleSet> FActorLockerStyle::Create()
 	
 	Style->SetContentRoot(ResourceDir);
 
-	Style->Set("SceneOutliner.LockClosed", new IMAGE_BRUSH(TEXT("LockClosed"), FVector2D(16.f)));
-	Style->Set("SceneOutliner.LockClosed.Small", new IMAGE_BRUSH(TEXT("LockClosed"), FVector2D(16.f)));
-	Style->Set("SceneOutliner.LockOpened", new IMAGE_BRUSH(TEXT("LockOpened"), FVector2D(16.f)));
-	Style->Set("SceneOutliner.LockOpened.Small", new IMAGE_BRUSH(TEXT("LockOpened"), FVector2D(16.f)));
+	Style->Set("SceneOutliner.Lock", new IMAGE_BRUSH(TEXT("Lock"), FVector2D(20.f)));
+	Style->Set("SceneOutliner.Lock.Small", new IMAGE_BRUSH(TEXT("Lock"), FVector2D(16.f)));
+	Style->Set("SceneOutliner.Unlock", new IMAGE_BRUSH(TEXT("Unlock"), FVector2D(20.f)));
+	Style->Set("SceneOutliner.Unlock.Small", new IMAGE_BRUSH(TEXT("Unlock"), FVector2D(16.f)));
 
 	return Style;
 }

@@ -25,7 +25,7 @@ SHeaderRow::FColumn::FArguments FSceneOutlinerActorLocker::ConstructHeaderRowCol
 			[
 				SNew(SImage)
 					.ColorAndOpacity(FSlateColor::UseForeground())
-					.Image(FActorLockerStyle::Get().GetBrush("SceneOutliner.LockClosed"))
+					.Image(FActorLockerStyle::Get().GetBrush("SceneOutliner.Lock"))
 			];
 }
 
