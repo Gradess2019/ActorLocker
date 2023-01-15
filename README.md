@@ -21,6 +21,8 @@ You can manipulate selected actor using **hotkeys**, **World Outliner** or **Con
 - **Alt + Shift + Period** - Unlock all actors
 - **Alt + Slash** - Temporary toggle lock state of locked actors 
 
+You can change hotkeys in Edit -> Editor Preferences -> Plugins -> Actor Locker
+
 ### World Outliner
 You will see additional column with **Lock** icon. Just click on it and it will lock itself and all children as well.
 
