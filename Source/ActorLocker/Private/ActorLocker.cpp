@@ -4,7 +4,9 @@
 #include "ActorLockerCommandManager.h"
 #include "ActorLockerManager.h"
 #include "ActorLockerMenuExtender.h"
+#include "ActorLockerSettings.h"
 #include "ActorLockerStyle.h"
+#include "ISettingsModule.h"
 #include "SceneOutlinerActorLocker.h"
 #include "SceneOutlinerModule.h"
 #include "Selection.h"
@@ -24,6 +26,15 @@ void FActorLockerModule::StartupModule()
 	const auto ColumnLabel = FSceneOutlinerActorLocker::Lock_Localized();
 	const auto ColumnInfo = FSceneOutlinerColumnInfo(ColumnVisibility, PriorityIndex, Factory, bCanBeHidden, FillSize, ColumnLabel);
 	SceneOutlinerModule.RegisterDefaultColumnType<FSceneOutlinerActorLocker>(ColumnInfo);
+
+	if (const auto SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->RegisterSettings("Editor", "Plugins", "ActorLocker",
+			NSLOCTEXT("ActorLocker", "ActorLockerSettingsDisplayName", "Actor Locker"),
+			NSLOCTEXT("ActorLocker", "ActorLockerSettingsDescription", "Configure the Actor Locker plugin (needs restart)"),
+			GetMutableDefault<UActorLockerSettings>()
+		);
+	}
 	
 	UActorLockerCommandManager::RegisterCommands();
 
