@@ -8,7 +8,7 @@
 	"CreatedBy": "Gradess Games",
 	"CreatedByURL": "https://stepantrofimov.com",
 	"DocsURL": "https://github.com/Gradess2019/Actor-Locker",
-	"MarketplaceURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/9280e03740c64592ad81b9fe751cec7e",
 	"SupportURL": "https://github.com/Gradess2019/Actor-Locker/issues",
 	"CanContainContent": false,
 	"IsBetaVersion": false,
@@ -18,7 +18,8 @@
 		{
 			"Name": "ActorLocker",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
 		}
 	]
 }

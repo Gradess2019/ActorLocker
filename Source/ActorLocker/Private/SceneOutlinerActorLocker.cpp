@@ -1,4 +1,4 @@
-﻿// Copyright Gradess Games. All Rights Reserved.
+﻿// Copyright 2023 Gradess Games. All Rights Reserved.
 
 #include "SceneOutlinerActorLocker.h"
 #include "ActorLockerStyle.h"
