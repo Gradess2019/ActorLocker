@@ -1,15 +1,15 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "1.0.2",
 	"FriendlyName": "Actor Locker",
 	"Description": "World Outliner and Level Editor extension to lock actors in the editor viewport",
 	"Category": "Editor",
 	"CreatedBy": "Gradess Games",
 	"CreatedByURL": "https://stepantrofimov.com",
-	"DocsURL": "https://github.com/Gradess2019/Actor-Locker",
+	"DocsURL": "https://github.com/Gradess2019/ActorLocker",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/9280e03740c64592ad81b9fe751cec7e",
-	"SupportURL": "https://github.com/Gradess2019/Actor-Locker/issues",
+	"SupportURL": "https://discord.gg/zFK38y68tK",
 	"CanContainContent": false,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
@@ -19,7 +19,11 @@
 			"Name": "ActorLocker",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
+			"WhitelistPlatforms": [ 
+				"Win64", 
+				"Mac", 
+				"Linux" 
+			]
 		}
 	]
 }
