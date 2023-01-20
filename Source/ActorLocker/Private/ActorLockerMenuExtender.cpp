@@ -93,8 +93,8 @@ void FActorLockerMenuExtender::CreateActorLockerMenu(FMenuBuilder& MenuBuilder, 
 	MenuBuilder.AddMenuEntry(
 		Commands.ToggleLockedObjects,
 		TEXT("ActorLocker"),
-		LOCTEXT("ToggleLock", "Toggle lock"),
-		LOCTEXT("ToggleLock_Tooltip", "Toggle lock for selected actors"),
+		LOCTEXT("ToggleLock", "Toggle locked actors state"),
+		LOCTEXT("ToggleLock_Tooltip", "Toggle lock for locked actors"),
 		FSlateIcon(FActorLockerStyle::Get().GetStyleSetName(), "SceneOutliner.Lock")
 	);
 }
