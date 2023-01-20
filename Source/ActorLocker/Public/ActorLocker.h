@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+#define OLDER_THAN_UE_5_1 (ENGINE_MAJOR_VERSION < 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1))
+
 class FActorLockerMenuExtender;
 class UActorLockerManager;
 
@@ -13,7 +15,7 @@ private:
 	TWeakObjectPtr<UActorLockerManager> ActorLockerManager;
 	TSharedPtr<FActorLockerMenuExtender> MenuExtender;
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 0 || ENGINE_MAJOR_VERSION <= 5
+#if OLDER_THAN_UE_5_1
 	FDelegateHandle OnPreWorldInitializationHandle;
 #endif
 	
