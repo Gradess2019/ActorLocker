@@ -39,7 +39,7 @@ public:
 	void ToggleLockedActors();
 	
 	UFUNCTION(BlueprintPure, Category = "Actor Locker Manager")
-	bool IsActorLocked(AActor* InActor) const;
+	bool IsActorLocked(const AActor* InActor) const;
 	bool IsItemLocked(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem) const;
 
 	void CheckParentLock(const TWeakPtr<ISceneOutlinerTreeItem>& InTreeItem);
@@ -54,13 +54,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void OnActorSelected(UObject* InObject);
-
-	UFUNCTION()
 	void OnActorDeleted(AActor* InActor);
-
-	UFUNCTION()
-	void OnSelectionChanged(UObject* Object);
 
 	void OnPostTick(float InDeltaTime);
 	void OnInputEvent(const FSlateDebuggingInputEventArgs& SlateDebuggingInputEventArgs);

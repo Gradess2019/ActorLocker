@@ -42,7 +42,8 @@ public class ActorLocker : ModuleRules
 				"SceneOutliner",
 				"UnrealEd",
 				"InputCore",
-				"LevelEditor"
+				"LevelEditor",
+				"EditorFramework",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

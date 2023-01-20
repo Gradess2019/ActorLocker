@@ -2,9 +2,10 @@
 
 #include "ActorLockerManager.h"
 #include "ActorLocker.h"
+#include "ActorLockerEditorMode.h"
 #include "ActorLockerTypes.h"
 #include "ActorTreeItem.h"
-#include "LevelEditor.h"
+#include "EditorModeManager.h"
 #include "LevelTreeItem.h"
 #include "Selection.h"
 #include "SOutlinerTreeView.h"
@@ -20,20 +21,18 @@ void UActorLockerManager::PostInitProperties()
 
 	SetFlags(RF_Transactional);
 
-	const auto Selection = GEditor->GetSelectedActors();
-	Selection->SelectObjectEvent.AddUObject(this, &UActorLockerManager::OnActorSelected);
-	Selection->SelectionChangedEvent.AddUObject(this, &UActorLockerManager::OnSelectionChanged);
 	GEngine->OnLevelActorDeleted().AddUObject(this, &UActorLockerManager::OnActorDeleted);
 	FSlateDebugging::InputEvent.AddUObject(this, &UActorLockerManager::OnInputEvent);
+	
+	FEditorModeTools& Tools = GLevelEditorModeTools();
+	if (!Tools.IsDefaultMode(UActorLockerEditorMode::EM_ActorLockerEditorModeId))
+	{
+		Tools.AddDefaultMode(UActorLockerEditorMode::EM_ActorLockerEditorModeId);
+	}
 }
 
 void UActorLockerManager::BeginDestroy()
 {
-	if (const auto Selection = GEditor->GetSelectedActors())
-	{
-		Selection->SelectObjectEvent.RemoveAll(this);
-	}
-
 	GEngine->OnLevelActorDeleted().RemoveAll(this);
 
 	UObject::BeginDestroy();
@@ -189,7 +188,7 @@ void UActorLockerManager::UnlockById(const uint32 InId)
 	SetLockTreeItem(Item, false);
 }
 
-bool UActorLockerManager::IsActorLocked(AActor* InActor) const
+bool UActorLockerManager::IsActorLocked(const AActor* InActor) const
 {
 	if (!IsValid(InActor))
 	{
@@ -323,57 +322,10 @@ UActorLockerManager* UActorLockerManager::GetActorLockerManager()
 	return ActorLockerModule.GetActorLockerManager().Get();
 }
 
-void UActorLockerManager::OnActorSelected(UObject* InObject)
-{
-	const auto Actor = Cast<AActor>(InObject);
-	if (!IsValid(Actor))
-	{
-		return;
-	}
-
-	if (IsActorLocked(Actor))
-	{
-		GEditor->SelectActor(Actor, false, true, false, true);
-	}
-}
-
 void UActorLockerManager::OnActorDeleted(AActor* InActor)
 {
 	const auto Id = InActor->GetUniqueID();
 	Items.Remove(Id);
-}
-
-void UActorLockerManager::OnSelectionChanged(UObject* Object)
-{
-	if (!IsValid(Object))
-	{
-		return;
-	}
-
-	auto Selection = Cast<USelection>(Object);
-	if (!IsValid(Selection))
-	{
-		return;
-	}
-
-	TArray<AActor*> SelectedActors;
-	Selection->GetSelectedObjects(SelectedActors);
-
-	if (SelectedActors.Num() == 0)
-	{
-		return;
-	}
-
-	for (const auto SelectedActor : SelectedActors)
-	{
-		const auto Level = SelectedActor->GetLevel();
-		const auto bDefaultBrush = IsValid(Level) ? Level->GetDefaultBrush() == SelectedActor : false;
-
-		if (IsActorLocked(SelectedActor) || bDefaultBrush)
-		{
-			Selection->Deselect(SelectedActor);
-		}
-	}
 }
 
 void UActorLockerManager::OnPostTick(float InDeltaTime)
@@ -390,16 +342,13 @@ void UActorLockerManager::OnInputEvent(const FSlateDebuggingInputEventArgs& Slat
 	}
 
 	const auto Widget = SlateDebuggingInputEventArgs.HandlerWidget;
-	if (!Widget.IsValid())
+	if (!Widget.IsValid() || Widget->GetType() != TEXT("SSceneOutlinerTreeRow") && Widget->GetType() != TEXT("SSceneOutlinerTreeView"))
 	{
 		return;
 	}
 
-	if (auto OutlinerTreeRow = StaticCastSharedPtr<SSceneOutlinerTreeRow>(Widget))
+	if (!FSlateApplication::Get().OnPostTick().IsBoundToObject(this))
 	{
-		if (!FSlateApplication::Get().OnPostTick().IsBoundToObject(this))
-		{
-			FSlateApplication::Get().OnPostTick().AddUObject(this, &UActorLockerManager::OnPostTick);
-		}
+		FSlateApplication::Get().OnPostTick().AddUObject(this, &UActorLockerManager::OnPostTick);
 	}
 }
