@@ -29,6 +29,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
 	TSet<FName> LockerWidgetTypes;
 
+	TSet<uint32> SelectedItems;	
+
 public:
 	const static FEditorModeID EM_ActorLockerEditorModeId;
 
@@ -53,7 +55,7 @@ public:
 
 protected:
 	virtual FWidgetPath GetWidgetPath(const FInputEvent& Event) const;
-	virtual bool IsOutlinerInteraction(const FWidgetPath& Path) const;
+	virtual bool IsOutlinerInteraction(const FWidgetPath& Path, uint32& OutItemId) const;
 	virtual void CheckLockedActorsSelection() const;
 	
 };

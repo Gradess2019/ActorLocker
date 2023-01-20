@@ -58,7 +58,8 @@ bool UActorLockerEditorMode::IsCompatibleWith(FEditorModeID OtherModeID) const
 
 bool UActorLockerEditorMode::IsSelectionDisallowed(AActor* InActor, bool bInSelection) const
 {
-	if (bOutlinerInteraction)
+	const auto Id = InActor->GetUniqueID();
+	if (SelectedItems.Contains(Id))
 	{
 		return false;
 	}
@@ -90,10 +91,22 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 {
 	if (InputEventType == ESlateDebuggingInputEvent::MouseButtonDown && Event.IsPointerEvent())
 	{
+		const auto Modifiers = Event.GetModifierKeys();
+		if (!Modifiers.IsControlDown())
+		{
+			SelectedItems.Reset();
+		}
+		
 		const auto WidgetPath = GetWidgetPath(Event);
-		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath);
+		
+		uint32 ItemId = 0;
+		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath, ItemId);
 
-		if (!bOutlinerInteraction)
+		if (bOutlinerInteraction)
+		{
+			SelectedItems.Add(ItemId);
+		}
+		else
 		{
 			CheckLockedActorsSelection();
 		}
@@ -111,15 +124,18 @@ FWidgetPath UActorLockerEditorMode::GetWidgetPath(const FInputEvent& Event) cons
 	return FSlateApplication::Get().LocateWindowUnderMouse(Position, Windows);;
 }
 
-bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path) const
+bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path, uint32& OutItemId) const
 {
 	if (!Path.IsValid())
 	{
 		return false;
 	}
-	
+
 	auto bResult = false;
 	const auto& Widgets = Path.Widgets.GetInternalArray();
+	TSharedPtr<SSceneOutlinerTreeRow> Row = nullptr;
+	TSharedPtr<SSceneOutlinerTreeView> Tree = nullptr;
+
 	for (const auto& ArrangedWidget : Widgets)
 	{
 		const auto Type = ArrangedWidget.Widget->GetType();
@@ -129,15 +145,28 @@ bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path) cons
 			bResult = true;
 			break;
 		}
-		
+
 		if (LockerWidgetTypes.Contains(Type))
 		{
 			bResult = false;
 			break;
 		}
 
-		if (OutlinerWidgetTypes.Contains(Type))
+		if (!Row.IsValid() && Type == TEXT("SSceneOutlinerTreeRow"))
 		{
+			Row = StaticCastSharedRef<SSceneOutlinerTreeRow>(ArrangedWidget.Widget);
+		}
+
+		if (!Tree.IsValid() && Type == TEXT("SSceneOutlinerTreeView"))
+		{
+			Tree = StaticCastSharedRef<SSceneOutlinerTreeView>(ArrangedWidget.Widget);
+		}
+
+		if (Row && Tree)
+		{
+			const TSharedPtr<ISceneOutlinerTreeItem>* Item = Tree->ItemFromWidget(Row.Get());
+			const auto Id = FLockerTreeItem::GetId(Item->Get()->AsWeak());
+			OutItemId = Id;
 			bResult = true;
 		}
 	}
