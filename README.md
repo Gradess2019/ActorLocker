@@ -4,7 +4,7 @@
 Simple plugin that lets you lock actor in the Level Editor so you can't move or select it.
 
 ## How to install
-1. Download [latest release](https://github.com/Gradess2019/Actor-Locker/releases/latest) for your Unreal Engine version
+1. Download [latest release](https://github.com/Gradess2019/ActorLocker/releases/latest) for your Unreal Engine version
 2. Unzip into: **\<ProjectDirectory\>/Plugins** (create Plugins directory if it doesn't exist)
 3. If you are using C++: Right Mouse Button on your **.uproject** file -> Generate Visual Studio project files
 4. Launch project
@@ -20,6 +20,8 @@ You can manipulate selected actor using **hotkeys**, **World Outliner** or **Con
 - **Alt + Shift + Comma** - Lock all actors
 - **Alt + Shift + Period** - Unlock all actors
 - **Alt + Slash** - Temporary toggle lock state of locked actors 
+
+You can change hotkeys in Edit -> Editor Preferences -> Plugins -> Actor Locker
 
 ### World Outliner
 You will see additional column with **Lock** icon. Just click on it and it will lock itself and all children as well.

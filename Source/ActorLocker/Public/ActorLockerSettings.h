@@ -17,19 +17,33 @@ class ACTORLOCKER_API UActorLockerSettings : public UObject
 
 public:
 	UActorLockerSettings();
-	
-	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker")
+
+#pragma region General
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
+	bool bDeselectActorOnLock = false;
+#pragma endregion General
+
+#pragma region Hotkeys
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord LockObject;
 
-	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker")
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord UnlockObject;
 
-	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker")
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord LockAllObjects;
 
-	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker")
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord UnlockAllObjects;
 
-	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker")
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord ToggleLockedObjects;
+#pragma endregion Hotkeys
+
+#pragma region EditorMode
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Editor Mode")
+	bool bSelectLockedActorsInOutliner = true;
+#pragma endregion EditorMode
+
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 };
