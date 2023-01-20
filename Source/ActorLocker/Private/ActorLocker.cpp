@@ -40,7 +40,17 @@ void FActorLockerModule::StartupModule()
 
 	CreateActorLockerMenuExtender();
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
 	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+#else
+	OnPreWorldInitializationHandle = FWorldDelegates::OnPreWorldInitialization.AddLambda([this] (UWorld* World, const UWorld::InitializationValues IVS)
+	{
+		CreateActorLockerManager();
+		FWorldDelegates::OnPreWorldInitialization.Remove(OnPreWorldInitializationHandle);
+		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+	});
+#endif
+	
 }
 
 void FActorLockerModule::ShutdownModule()
@@ -56,6 +66,11 @@ void FActorLockerModule::ShutdownModule()
 }
 
 void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
+{
+	CreateActorLockerManager();
+}
+
+void FActorLockerModule::CreateActorLockerManager()
 {
 	if (ActorLockerManager.IsValid())
 	{
