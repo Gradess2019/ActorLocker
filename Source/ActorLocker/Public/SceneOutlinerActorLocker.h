@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "SceneOutlinerGutter.h"
-#include "SceneOutlinerPublicTypes.h"
 #include "ISceneOutlinerColumn.h"
 
 #define LOCTEXT_NAMESPACE "SceneOutlinerLock"

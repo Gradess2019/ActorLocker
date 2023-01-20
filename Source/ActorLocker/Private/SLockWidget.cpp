@@ -25,14 +25,8 @@ void SLockWidget::Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerAct
 	Row = InRow;
 	WeakActorManager = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker").GetActorLockerManager();
 
-	if (WeakActorManager.IsValid())
-	{
-		WeakActorManager->InitItem(WeakItem);
-	}
-	else
-	{
-		UE_LOG(LogLockWidget, Error, TEXT("ActorManager is not valid in %s"), *WeakItem.Pin()->GetDisplayString());
-	}
+	check(WeakActorManager.IsValid());
+	WeakActorManager->InitItem(WeakItem);
 
 	SImage::Construct(
 		SImage::FArguments()
