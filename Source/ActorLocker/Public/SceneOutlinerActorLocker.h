@@ -18,9 +18,23 @@ protected:
 	TWeakPtr<ISceneOutliner> WeakOutliner;
 	
 public:
-	DEFINE_SCENEOUTLINER_BUILTIN_COLUMN_TYPE(Lock, "Lock", "LockColumnName", "Lock");
-
 	FSceneOutlinerActorLocker(ISceneOutliner& Outliner);
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+	DEFINE_SCENEOUTLINER_BUILTIN_COLUMN_TYPE(Lock, "Lock", "LockColumnName", "Lock");
+#else
+	static FName& Lock()
+	{
+		static FName Lock = "Lock";
+		return Lock;
+	}
+
+	static const FText& Lock_Localized()
+	{
+		static FText LockLocalized = LOCTEXT("LockColumnName", "Lock");
+		return LockLocalized;
+	}
+#endif
 
 	virtual SHeaderRow::FColumn::FArguments ConstructHeaderRowColumn() override;
 	virtual const TSharedRef<SWidget> ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row) override;
