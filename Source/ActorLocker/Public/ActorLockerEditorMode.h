@@ -24,6 +24,9 @@ protected:
 	TSet<FName> OutlinerWidgetTypes;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
+	TSet<FName> MenuWidgetTypes;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
 	TSet<FName> LockerWidgetTypes;
 
 public:

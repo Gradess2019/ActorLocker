@@ -25,6 +25,7 @@ UActorLockerEditorMode::UActorLockerEditorMode()
 		false, 0);
 
 	OutlinerWidgetTypes = {"SSceneOutlinerTreeRow"};
+	MenuWidgetTypes = {"SMenuEntryButton"};
 	LockerWidgetTypes = {"SLockWidget"};
 }
 
@@ -89,8 +90,6 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 {
 	if (InputEventType == ESlateDebuggingInputEvent::MouseButtonDown && Event.IsPointerEvent())
 	{
-		bOutlinerInteraction = false;
-
 		const auto WidgetPath = GetWidgetPath(Event);
 		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath);
 
@@ -124,6 +123,13 @@ bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path) cons
 	for (const auto& ArrangedWidget : Widgets)
 	{
 		const auto Type = ArrangedWidget.Widget->GetType();
+
+		if (bOutlinerInteraction && MenuWidgetTypes.Contains(Type))
+		{
+			bResult = true;
+			break;
+		}
+		
 		if (LockerWidgetTypes.Contains(Type))
 		{
 			bResult = false;
