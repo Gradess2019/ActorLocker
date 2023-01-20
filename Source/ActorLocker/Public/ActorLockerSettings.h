@@ -18,6 +18,11 @@ class ACTORLOCKER_API UActorLockerSettings : public UObject
 public:
 	UActorLockerSettings();
 
+#pragma region General
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
+	bool bDeselectActorOnLock = false;
+#pragma endregion General
+
 #pragma region Hotkeys
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Hotkeys")
 	FInputChord LockObject;

@@ -3,12 +3,12 @@
 #include "ActorLockerManager.h"
 #include "ActorLocker.h"
 #include "ActorLockerEditorMode.h"
+#include "ActorLockerSettings.h"
 #include "ActorLockerTypes.h"
 #include "ActorTreeItem.h"
 #include "EditorModeManager.h"
 #include "LevelTreeItem.h"
 #include "Selection.h"
-#include "SOutlinerTreeView.h"
 
 void UActorLockerManager::PostInitProperties()
 {
@@ -152,7 +152,7 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 		{
 			Actor->SetLockLocation(bInLock);
 
-			if (bInLock)
+			if (bInLock && GetDefault<UActorLockerSettings>()->bDeselectActorOnLock)
 			{
 				if (const auto Selection = GEditor->GetSelectedActors())
 				{
