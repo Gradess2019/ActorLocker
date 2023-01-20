@@ -4,6 +4,7 @@
 #include "ActorLockerEditorMode.h"
 #include "ActorLockerManager.h"
 #include "LevelEditor.h"
+#include "Selection.h"
 #include "SOutlinerTreeView.h"
 #include "SSceneOutliner.h"
 #include "Stats/StatsMisc.h"
@@ -60,9 +61,10 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 		SCOPE_LOG_TIME_FUNC();
 		bOutlinerInteraction = false;
 		
+		const auto& PointerEvent = StaticCast<const FPointerEvent&>(Event);
+		const auto Position = PointerEvent.GetScreenSpacePosition();
+		
 		auto& SlateApplication = FSlateApplication::Get();
-		const auto& Test = StaticCast<const FPointerEvent&>(Event);
-		const auto Position = Test.GetScreenSpacePosition();
 		const auto Windows = SlateApplication.GetInteractiveTopLevelWindows();
 		
 		const auto& Path = FSlateApplication::Get().LocateWindowUnderMouse(Position, Windows);
@@ -85,6 +87,29 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 			{
 				bOutlinerInteraction = true;
 			}
+		}
+
+		if (bOutlinerInteraction)
+		{
+			return;
+		}
+
+		const auto LockerManager = UActorLockerManager::GetActorLockerManager();
+		const auto Selection = GEditor->GetSelectedActors();
+
+		TSet<AActor*> ActorsToDeselect;
+		for (FSelectionIterator Iter(*Selection); Iter; ++Iter)
+		{
+			const auto Actor = Cast<AActor>(*Iter);
+			if (LockerManager->IsActorLocked(Actor))
+			{
+				ActorsToDeselect.Add(Actor);
+			}
+		}
+
+		for (const auto ActorToDeselect : ActorsToDeselect)
+		{
+			Selection->Deselect(ActorToDeselect);
 		}
 	}
 }
