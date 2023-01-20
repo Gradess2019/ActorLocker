@@ -6,6 +6,10 @@
 #include "SceneOutlinerGutter.h"
 #include "ISceneOutlinerColumn.h"
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+#include "SceneOutlinerPublicTypes.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "SceneOutlinerLock"
 
 /**
