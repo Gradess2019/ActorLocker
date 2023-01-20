@@ -3,6 +3,7 @@
 
 #include "ActorLockerEditorMode.h"
 #include "ActorLockerManager.h"
+#include "ActorLockerSettings.h"
 #include "LevelEditor.h"
 #include "Selection.h"
 #include "SOutlinerTreeView.h"
@@ -25,6 +26,26 @@ UActorLockerEditorMode::UActorLockerEditorMode()
 	
 	OutlinerWidgetTypes = { "SSceneOutlinerTreeRow" };
 	LockerWidgetTypes = { "SLockWidget" };
+}
+
+void UActorLockerEditorMode::Enter()
+{
+	UEdMode::Enter();
+	
+	if (GetDefault<UActorLockerSettings>()->bSelectLockedActorsInOutliner)
+	{
+		RegisterEvent();
+	}
+}
+
+void UActorLockerEditorMode::Exit()
+{
+	if (GetDefault<UActorLockerSettings>()->bSelectLockedActorsInOutliner)
+	{
+		UnregisterEvent();
+	}
+	
+	Super::Exit();
 }
 
 bool UActorLockerEditorMode::IsCompatibleWith(FEditorModeID OtherModeID) const
@@ -54,11 +75,20 @@ bool UActorLockerEditorMode::IsSelectionDisallowed(AActor* InActor, bool bInSele
 	return bDenied;
 }
 
+void UActorLockerEditorMode::RegisterEvent()
+{
+	FSlateDebugging::RegisterWidgetInputRoutingEvent(this);
+}
+
+void UActorLockerEditorMode::UnregisterEvent()
+{
+	FSlateDebugging::UnregisterWidgetInputRoutingEvent(this);
+}
+
 void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEventType, const FInputEvent& Event)
 {
 	if (InputEventType == ESlateDebuggingInputEvent::MouseButtonDown && Event.IsPointerEvent())
 	{
-		SCOPE_LOG_TIME_FUNC();
 		bOutlinerInteraction = false;
 		
 		const auto& PointerEvent = StaticCast<const FPointerEvent&>(Event);
@@ -112,18 +142,6 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 			Selection->Deselect(ActorToDeselect);
 		}
 	}
-}
-
-void UActorLockerEditorMode::Enter()
-{
-	UEdMode::Enter();
-	FSlateDebugging::RegisterWidgetInputRoutingEvent(this);
-}
-
-void UActorLockerEditorMode::Exit()
-{
-	FSlateDebugging::UnregisterWidgetInputRoutingEvent(this);
-	Super::Exit();
 }
 
 #undef LOCTEXT_NAMESPACE

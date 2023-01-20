@@ -36,6 +36,9 @@ public:
 	virtual bool IsCompatibleWith(FEditorModeID OtherModeID) const override;
 	virtual bool IsSelectionDisallowed(AActor* InActor, bool bInSelection) const override;
 
+	void UnregisterEvent();
+	void RegisterEvent();
+
 	//~ Begin FSlateDebugging::IWidgetInputRoutingEvent Interface
 	virtual void OnProcessInput(ESlateDebuggingInputEvent InputEventType, const FInputEvent& Event) override;
 	virtual void OnPreProcessInput(ESlateDebuggingInputEvent InputEventType, const TCHAR* InputPrecessorName, bool bHandled) override {}
