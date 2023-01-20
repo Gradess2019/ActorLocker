@@ -23,15 +23,15 @@ UActorLockerEditorMode::UActorLockerEditorMode()
 		LOCTEXT("ActorLockerEditorModeName", "ActorLockerEditorMode"),
 		FSlateIcon(),
 		false, 0);
-	
-	OutlinerWidgetTypes = { "SSceneOutlinerTreeRow" };
-	LockerWidgetTypes = { "SLockWidget" };
+
+	OutlinerWidgetTypes = {"SSceneOutlinerTreeRow"};
+	LockerWidgetTypes = {"SLockWidget"};
 }
 
 void UActorLockerEditorMode::Enter()
 {
 	UEdMode::Enter();
-	
+
 	if (GetDefault<UActorLockerSettings>()->bSelectLockedActorsInOutliner)
 	{
 		RegisterEvent();
@@ -44,7 +44,7 @@ void UActorLockerEditorMode::Exit()
 	{
 		UnregisterEvent();
 	}
-	
+
 	Super::Exit();
 }
 
@@ -61,17 +61,17 @@ bool UActorLockerEditorMode::IsSelectionDisallowed(AActor* InActor, bool bInSele
 	{
 		return false;
 	}
-	
+
 	if (!bInSelection)
 	{
 		return false;
 	}
-	
+
 	const auto LockerManager = UActorLockerManager::GetActorLockerManager();
 	const auto bLocked = IsValid(LockerManager) && LockerManager->IsActorLocked(InActor);
 	const auto bLevelBrushActor = IsValid(InActor) && InActor->GetLevel()->GetDefaultBrush() == InActor;
 	const auto bDenied = bLocked || bLevelBrushActor;
-	
+
 	return bDenied;
 }
 
@@ -90,57 +90,73 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 	if (InputEventType == ESlateDebuggingInputEvent::MouseButtonDown && Event.IsPointerEvent())
 	{
 		bOutlinerInteraction = false;
-		
-		const auto& PointerEvent = StaticCast<const FPointerEvent&>(Event);
-		const auto Position = PointerEvent.GetScreenSpacePosition();
-		
-		auto& SlateApplication = FSlateApplication::Get();
-		const auto Windows = SlateApplication.GetInteractiveTopLevelWindows();
-		
-		const auto& Path = FSlateApplication::Get().LocateWindowUnderMouse(Position, Windows);
-		if (!Path.IsValid())
+
+		const auto WidgetPath = GetWidgetPath(Event);
+		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath);
+
+		if (!bOutlinerInteraction)
 		{
-			return;
+			CheckLockedActorsSelection();
+		}
+	}
+}
+
+FWidgetPath UActorLockerEditorMode::GetWidgetPath(const FInputEvent& Event) const
+{
+	const auto& PointerEvent = StaticCast<const FPointerEvent&>(Event);
+	const auto Position = PointerEvent.GetScreenSpacePosition();
+
+	auto& SlateApplication = FSlateApplication::Get();
+	const auto Windows = SlateApplication.GetInteractiveTopLevelWindows();
+
+	return FSlateApplication::Get().LocateWindowUnderMouse(Position, Windows);;
+}
+
+bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path) const
+{
+	if (!Path.IsValid())
+	{
+		return false;
+	}
+	
+	auto bResult = false;
+	const auto& Widgets = Path.Widgets.GetInternalArray();
+	for (const auto& ArrangedWidget : Widgets)
+	{
+		const auto Type = ArrangedWidget.Widget->GetType();
+		if (LockerWidgetTypes.Contains(Type))
+		{
+			bResult = false;
+			break;
 		}
 
-		const auto& Widgets = Path.Widgets.GetInternalArray();
-		for (const auto& ArrangedWidget : Widgets)
+		if (OutlinerWidgetTypes.Contains(Type))
 		{
-			const auto Type = ArrangedWidget.Widget->GetType();
-			if (LockerWidgetTypes.Contains(Type))
-			{
-				bOutlinerInteraction = false;
-				break;
-			}
-			
-			if (OutlinerWidgetTypes.Contains(Type))
-			{
-				bOutlinerInteraction = true;
-			}
+			bResult = true;
 		}
+	}
 
-		if (bOutlinerInteraction)
+	return bResult;
+}
+
+void UActorLockerEditorMode::CheckLockedActorsSelection() const
+{
+	const auto LockerManager = UActorLockerManager::GetActorLockerManager();
+	const auto Selection = GEditor->GetSelectedActors();
+
+	TSet<AActor*> ActorsToDeselect;
+	for (FSelectionIterator Iter(*Selection); Iter; ++Iter)
+	{
+		const auto Actor = Cast<AActor>(*Iter);
+		if (LockerManager->IsActorLocked(Actor))
 		{
-			return;
+			ActorsToDeselect.Add(Actor);
 		}
+	}
 
-		const auto LockerManager = UActorLockerManager::GetActorLockerManager();
-		const auto Selection = GEditor->GetSelectedActors();
-
-		TSet<AActor*> ActorsToDeselect;
-		for (FSelectionIterator Iter(*Selection); Iter; ++Iter)
-		{
-			const auto Actor = Cast<AActor>(*Iter);
-			if (LockerManager->IsActorLocked(Actor))
-			{
-				ActorsToDeselect.Add(Actor);
-			}
-		}
-
-		for (const auto ActorToDeselect : ActorsToDeselect)
-		{
-			Selection->Deselect(ActorToDeselect);
-		}
+	for (const auto ActorToDeselect : ActorsToDeselect)
+	{
+		Selection->Deselect(ActorToDeselect);
 	}
 }
 

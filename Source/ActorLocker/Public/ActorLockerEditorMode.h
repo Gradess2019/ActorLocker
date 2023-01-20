@@ -47,5 +47,10 @@ public:
 	virtual void OnInputRouted(ESlateDebuggingInputEvent InputEventType) override {}
 	virtual void OnInputProcessed(ESlateDebuggingInputEvent InputEventType) override {}
 	//~ End FSlateDebugging::IWidgetInputRoutingEvent Interface
+
+protected:
+	virtual FWidgetPath GetWidgetPath(const FInputEvent& Event) const;
+	virtual bool IsOutlinerInteraction(const FWidgetPath& Path) const;
+	virtual void CheckLockedActorsSelection() const;
 	
 };
