@@ -40,7 +40,17 @@ void FActorLockerModule::StartupModule()
 
 	CreateActorLockerMenuExtender();
 
+#if OLDER_THAN_UE_5_1
+	OnPreWorldInitializationHandle = FWorldDelegates::OnPreWorldInitialization.AddLambda([this] (UWorld* World, const UWorld::InitializationValues IVS)
+	{
+		CreateActorLockerManager();
+		FWorldDelegates::OnPreWorldInitialization.Remove(OnPreWorldInitializationHandle);
+		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+	});
+#else
 	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+#endif
+	
 }
 
 void FActorLockerModule::ShutdownModule()
@@ -55,7 +65,22 @@ void FActorLockerModule::ShutdownModule()
 	FActorLockerStyle::Shutdown();
 }
 
+TWeakObjectPtr<UActorLockerManager> FActorLockerModule::GetActorLockerManager(const bool bRequired)
+{
+	if (!ActorLockerManager.IsValid() && bRequired)
+	{
+		CreateActorLockerManager();
+	}
+
+	return ActorLockerManager;
+}
+
 void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
+{
+	CreateActorLockerManager();
+}
+
+void FActorLockerModule::CreateActorLockerManager()
 {
 	if (ActorLockerManager.IsValid())
 	{
@@ -65,6 +90,8 @@ void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool 
 	
 	ActorLockerManager = NewObject<UActorLockerManager>();
 	ActorLockerManager->AddToRoot();
+
+	OnActorLockerManagerCreated.Broadcast(ActorLockerManager.Get());
 }
 
 void FActorLockerModule::CreateActorLockerMenuExtender()
