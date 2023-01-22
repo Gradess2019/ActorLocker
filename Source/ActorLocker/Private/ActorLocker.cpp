@@ -65,6 +65,16 @@ void FActorLockerModule::ShutdownModule()
 	FActorLockerStyle::Shutdown();
 }
 
+TWeakObjectPtr<UActorLockerManager> FActorLockerModule::GetActorLockerManager(const bool bRequired)
+{
+	if (!ActorLockerManager.IsValid() && bRequired)
+	{
+		CreateActorLockerManager();
+	}
+
+	return ActorLockerManager;
+}
+
 void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
 {
 	CreateActorLockerManager();
@@ -81,9 +91,7 @@ void FActorLockerModule::CreateActorLockerManager()
 	ActorLockerManager = NewObject<UActorLockerManager>();
 	ActorLockerManager->AddToRoot();
 
-#if OLDER_THAN_UE_5_1
 	OnActorLockerManagerCreated.Broadcast(ActorLockerManager.Get());
-#endif
 }
 
 void FActorLockerModule::CreateActorLockerMenuExtender()

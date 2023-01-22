@@ -24,11 +24,10 @@ void SLockWidget::Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerAct
 	WeakItem = InWeakItem;
 	Row = InRow;
 
-#if OLDER_THAN_UE_5_1
 	auto& Module = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
+	const auto bRequired = true;
+	WeakActorManager = Module.GetActorLockerManager(bRequired);
 	OnActorLockerManagerCreatedHandle = Module.OnActorLockerManagerCreated.AddLambda([this](UActorLockerManager* InNewManager) { WeakActorManager = InNewManager; });
-	WeakActorManager = Module.GetActorLockerManager();
-#endif
 	
 	check(WeakActorManager.IsValid());
 	WeakActorManager->InitItem(WeakItem);
@@ -41,18 +40,14 @@ void SLockWidget::Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerAct
 	);
 }
 
-
 SLockWidget::~SLockWidget()
 {
-#if OLDER_THAN_UE_5_1
 	if (FModuleManager::Get().IsModuleLoaded("ActorLocker"))
 	{
 		const auto Module = FModuleManager::GetModulePtr<FActorLockerModule>("ActorLocker");
 		Module->OnActorLockerManagerCreated.Remove(OnActorLockerManagerCreatedHandle);
 	}
-#endif
 }
-
 
 FSlateColor SLockWidget::GetForegroundColor() const
 {

@@ -318,7 +318,7 @@ TSet<AActor*> UActorLockerManager::GetLockedActors() const
 
 UActorLockerManager* UActorLockerManager::GetActorLockerManager()
 {
-	const auto& ActorLockerModule = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
+	auto& ActorLockerModule = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
 	return ActorLockerModule.GetActorLockerManager().Get();
 }
 

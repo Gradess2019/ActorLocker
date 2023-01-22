@@ -8,17 +8,13 @@
 class FActorLockerMenuExtender;
 class UActorLockerManager;
 
-#if OLDER_THAN_UE_5_1
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorLockerManagerCreated, UActorLockerManager*);
-#endif
 
 
 class FActorLockerModule : public IModuleInterface
 {
 public:
-#if OLDER_THAN_UE_5_1
 	FOnActorLockerManagerCreated OnActorLockerManagerCreated;
-#endif
 	
 private:
 	TWeakObjectPtr<UActorLockerManager> ActorLockerManager;
@@ -34,7 +30,7 @@ public:
 	virtual void ShutdownModule() override;
 	//~ End IModuleInterface Interface
 
-	TWeakObjectPtr<UActorLockerManager> GetActorLockerManager() const { return ActorLockerManager; }
+	TWeakObjectPtr<UActorLockerManager> GetActorLockerManager(const bool bRequired = false);
 
 protected:
 	void CreateActorLockerManager(const FString& Filename, bool bAsTemplate);
