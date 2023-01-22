@@ -3,14 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#define OLDER_THAN_UE_5_1 (ENGINE_MAJOR_VERSION < 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1))
+#include "ActorLockerTypes.h"
 
 class FActorLockerMenuExtender;
 class UActorLockerManager;
 
+#if OLDER_THAN_UE_5_1
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorLockerManagerCreated, UActorLockerManager*);
+#endif
+
+
 class FActorLockerModule : public IModuleInterface
 {
+public:
+#if OLDER_THAN_UE_5_1
+	FOnActorLockerManagerCreated OnActorLockerManagerCreated;
+#endif
+	
 private:
 	TWeakObjectPtr<UActorLockerManager> ActorLockerManager;
 	TSharedPtr<FActorLockerMenuExtender> MenuExtender;

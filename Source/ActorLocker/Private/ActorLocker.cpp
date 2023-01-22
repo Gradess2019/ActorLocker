@@ -40,15 +40,15 @@ void FActorLockerModule::StartupModule()
 
 	CreateActorLockerMenuExtender();
 
-#if !OLDER_THAN_UE_5_1
-	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
-#else
+#if OLDER_THAN_UE_5_1
 	OnPreWorldInitializationHandle = FWorldDelegates::OnPreWorldInitialization.AddLambda([this] (UWorld* World, const UWorld::InitializationValues IVS)
 	{
 		CreateActorLockerManager();
 		FWorldDelegates::OnPreWorldInitialization.Remove(OnPreWorldInitializationHandle);
 		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
 	});
+#else
+	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
 #endif
 	
 }
@@ -80,6 +80,10 @@ void FActorLockerModule::CreateActorLockerManager()
 	
 	ActorLockerManager = NewObject<UActorLockerManager>();
 	ActorLockerManager->AddToRoot();
+
+#if OLDER_THAN_UE_5_1
+	OnActorLockerManagerCreated.Broadcast(ActorLockerManager.Get());
+#endif
 }
 
 void FActorLockerModule::CreateActorLockerMenuExtender()
