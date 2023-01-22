@@ -40,7 +40,17 @@ void FActorLockerModule::StartupModule()
 
 	CreateActorLockerMenuExtender();
 
+#if OLDER_THAN_UE_5_1
+	OnPreWorldInitializationHandle = FWorldDelegates::OnPreWorldInitialization.AddLambda([this] (UWorld* World, const UWorld::InitializationValues IVS)
+	{
+		CreateActorLockerManager();
+		FWorldDelegates::OnPreWorldInitialization.Remove(OnPreWorldInitializationHandle);
+		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+	});
+#else
 	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+#endif
+	
 }
 
 void FActorLockerModule::ShutdownModule()
@@ -57,6 +67,11 @@ void FActorLockerModule::ShutdownModule()
 
 void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
 {
+	CreateActorLockerManager();
+}
+
+void FActorLockerModule::CreateActorLockerManager()
+{
 	if (ActorLockerManager.IsValid())
 	{
 		ActorLockerManager->RemoveFromRoot();
@@ -65,6 +80,10 @@ void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool 
 	
 	ActorLockerManager = NewObject<UActorLockerManager>();
 	ActorLockerManager->AddToRoot();
+
+#if OLDER_THAN_UE_5_1
+	OnActorLockerManagerCreated.Broadcast(ActorLockerManager.Get());
+#endif
 }
 
 void FActorLockerModule::CreateActorLockerMenuExtender()

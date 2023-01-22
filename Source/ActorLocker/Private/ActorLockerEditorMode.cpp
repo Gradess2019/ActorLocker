@@ -9,6 +9,11 @@
 #include "SOutlinerTreeView.h"
 #include "SSceneOutliner.h"
 #include "Stats/StatsMisc.h"
+#include "ActorLocker.h"
+
+#if OLDER_THAN_UE_5_1
+#include "InstancedFoliageActor.h"
+#endif
 
 
 #define LOCTEXT_NAMESPACE "FSampleToolsEditorMode"
@@ -72,8 +77,14 @@ bool UActorLockerEditorMode::IsSelectionDisallowed(AActor* InActor, bool bInSele
 	const auto LockerManager = UActorLockerManager::GetActorLockerManager();
 	const auto bLocked = IsValid(LockerManager) && LockerManager->IsActorLocked(InActor);
 	const auto bLevelBrushActor = IsValid(InActor) && InActor->GetLevel()->GetDefaultBrush() == InActor;
-	const auto bDenied = bLocked || bLevelBrushActor;
 
+#if OLDER_THAN_UE_5_1
+	const auto bFoliageActor = InActor->GetLevel()->InstancedFoliageActor == InActor;
+	const auto bDenied = bLocked || bLevelBrushActor || bFoliageActor;
+#else
+	const auto bDenied = bLocked || bLevelBrushActor;
+#endif
+	
 	return bDenied;
 }
 

@@ -6,6 +6,7 @@
 #include "SceneOutliner/Public/SceneOutlinerFwd.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Views/STableRow.h"
+#include "ActorLockerTypes.h"
 
 class UActorLockerManager;
 class ISceneOutliner;
@@ -22,6 +23,10 @@ public:
 	SLATE_END_ARGS()
 
 protected:
+#if OLDER_THAN_UE_5_1
+	FDelegateHandle OnActorLockerManagerCreatedHandle;
+#endif
+	
 	TWeakPtr<FSceneOutlinerActorLocker> WeakColumn;
 	TWeakPtr<ISceneOutliner> WeakOutliner;
 	TWeakPtr<ISceneOutlinerTreeItem> WeakItem;
@@ -33,6 +38,7 @@ public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs, TWeakPtr<FSceneOutlinerActorLocker> InWeakColumn, TWeakPtr<ISceneOutliner> InWeakOutliner, TWeakPtr<ISceneOutlinerTreeItem> InWeakTreeItem, const STableRow<FSceneOutlinerTreeItemPtr>* InRow);
 
+	~SLockWidget();
 protected:
 	virtual FSlateColor GetForegroundColor() const override;
 	virtual const FSlateBrush* GetBrush() const;

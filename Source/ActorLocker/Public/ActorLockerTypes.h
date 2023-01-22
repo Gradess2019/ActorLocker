@@ -4,6 +4,8 @@
 #include "CoreMinimal.h"
 #include "ActorLockerTypes.generated.h"
 
+#define OLDER_THAN_UE_5_1 (ENGINE_MAJOR_VERSION < 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1))
+
 struct ISceneOutlinerTreeItem;
 DECLARE_LOG_CATEGORY_EXTERN(LogActorLockerManager, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogLockWidget, Log, All);

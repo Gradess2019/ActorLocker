@@ -44,6 +44,11 @@ public class ActorLocker : ModuleRules
 				"InputCore",
 				"LevelEditor",
 				"EditorFramework",
+				
+#if !UE_5_1_OR_LATER
+				"Foliage"
+#endif
+				
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
