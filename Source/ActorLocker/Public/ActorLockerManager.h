@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "ActorLockerManager.generated.h"
 
+class UActorLockerSettings;
 struct ISceneOutlinerTreeItem;
 class AActor;
 
@@ -19,6 +20,9 @@ class ACTORLOCKER_API UActorLockerManager : public UObject
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Manager")
+	const UActorLockerSettings* Settings;
+	
 	TMap<uint32, FLockerTreeItem> Items;
 	TSet<uint32> ToggledItems;
 
@@ -53,6 +57,9 @@ public:
 	static UActorLockerManager* GetActorLockerManager();
 
 protected:
+	UFUNCTION(BlueprintCallable, Category = "Actor Locker Manager")
+	void UpdateTagState(AActor* Actor, bool bInLock);
+	
 	UFUNCTION()
 	void OnActorDeleted(AActor* InActor);
 

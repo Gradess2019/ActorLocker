@@ -7,6 +7,8 @@
 
 UActorLockerSettings::UActorLockerSettings()
 {
+	LockedTag = TEXT("ActorLocked");
+	
 	LockObject = FInputChord(EKeys::Comma, EModifierKey::Alt);
 	UnlockObject = FInputChord(EKeys::Period, EModifierKey::Alt);
 	LockAllObjects = FInputChord(EKeys::Comma, EModifierKey::Alt | EModifierKey::Shift);
