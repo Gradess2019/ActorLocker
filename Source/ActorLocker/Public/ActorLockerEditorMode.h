@@ -41,6 +41,8 @@ public:
 	virtual bool IsCompatibleWith(FEditorModeID OtherModeID) const override;
 	virtual bool IsSelectionDisallowed(AActor* InActor, bool bInSelection) const override;
 
+	virtual bool UsesToolkits() const override { return false; }
+
 	void UnregisterEvent();
 	void RegisterEvent();
 
