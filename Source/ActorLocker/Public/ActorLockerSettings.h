@@ -21,6 +21,13 @@ public:
 #pragma region General
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
 	bool bDeselectActorOnLock = false;
+
+	// if true the locked actors will be marked by a tag
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
+	bool bSaveLockedState = true;
+
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General", meta = (EditCondition = "bSaveLockedState"))
+	FName LockedTag;
 #pragma endregion General
 
 #pragma region Hotkeys

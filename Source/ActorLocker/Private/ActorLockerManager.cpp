@@ -29,6 +29,8 @@ void UActorLockerManager::PostInitProperties()
 	{
 		Tools.AddDefaultMode(UActorLockerEditorMode::EM_ActorLockerEditorModeId);
 	}
+
+	Settings = GetDefault<UActorLockerSettings>();
 }
 
 void UActorLockerManager::BeginDestroy()
@@ -60,6 +62,15 @@ void UActorLockerManager::InitItem(const TWeakPtr<ISceneOutlinerTreeItem>& InTre
 	}
 
 	Items.Add(Id, NewItem);
+
+	if (InTreeItem.Pin()->IsA<FActorTreeItem>())
+	{
+		const auto ActorItem = InTreeItem.Pin()->CastTo<FActorTreeItem>();
+		if (ActorItem->Actor.IsValid() && ActorItem->Actor->ActorHasTag(Settings->LockedTag))
+		{
+			SetLockTreeItem(InTreeItem, true);
+		}
+	}
 }
 
 void UActorLockerManager::SetLockActor(AActor* InActor, const bool bInLock, const bool bPropagateToChildren)
@@ -150,9 +161,15 @@ void UActorLockerManager::SetLockTreeItem(const TWeakPtr<ISceneOutlinerTreeItem>
 	{
 		if (const auto Actor = ActorItem->Actor.Get())
 		{
+			SaveToTransactionBuffer(Actor, false);
+			
 			Actor->SetLockLocation(bInLock);
 
-			if (bInLock && GetDefault<UActorLockerSettings>()->bDeselectActorOnLock)
+			const auto ActorLockerSettings = GetDefault<UActorLockerSettings>();
+			
+			UpdateTagState(Actor, bInLock);
+			
+			if (bInLock && ActorLockerSettings->bDeselectActorOnLock)
 			{
 				if (const auto Selection = GEditor->GetSelectedActors())
 				{
@@ -320,6 +337,21 @@ UActorLockerManager* UActorLockerManager::GetActorLockerManager()
 {
 	auto& ActorLockerModule = FModuleManager::GetModuleChecked<FActorLockerModule>("ActorLocker");
 	return ActorLockerModule.GetActorLockerManager().Get();
+}
+
+void UActorLockerManager::UpdateTagState(AActor* const Actor, const bool bInLock)
+{
+	const auto TagExists = Actor->ActorHasTag(Settings->LockedTag);
+	if (bInLock && Settings->bSaveLockedState && !TagExists)
+	{
+		Actor->Tags.AddUnique(Settings->LockedTag);
+		Actor->Modify();
+	}
+	else if (!bInLock && TagExists)
+	{
+		Actor->Tags.Remove(Settings->LockedTag);
+		Actor->Modify();
+	}
 }
 
 void UActorLockerManager::OnActorDeleted(AActor* InActor)
