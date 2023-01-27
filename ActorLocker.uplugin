@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 6,
-	"VersionName": "1.2.0",
+	"Version": 7,
+	"VersionName": "1.3.0",
 	"FriendlyName": "Actor Locker",
 	"Description": "World Outliner and Level Editor extension to lock actors in the editor viewport",
 	"Category": "Editor",
