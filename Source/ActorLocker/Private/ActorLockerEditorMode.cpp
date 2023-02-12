@@ -10,6 +10,7 @@
 #include "SSceneOutliner.h"
 #include "Stats/StatsMisc.h"
 #include "ActorLocker.h"
+#include "EngineUtils.h"
 
 #if OLDER_THAN_UE_5_1
 #include "InstancedFoliageActor.h"
@@ -84,7 +85,7 @@ bool UActorLockerEditorMode::IsSelectionDisallowed(AActor* InActor, bool bInSele
 #else
 	const auto bDenied = bLocked || bLevelBrushActor;
 #endif
-	
+
 	return bDenied;
 }
 
@@ -107,9 +108,9 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 		{
 			SelectedItems.Reset();
 		}
-		
+
 		const auto WidgetPath = GetWidgetPath(Event);
-		
+
 		uint32 ItemId = 0;
 		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath, ItemId);
 
@@ -122,6 +123,21 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 			CheckLockedActorsSelection();
 		}
 	}
+}
+
+bool UActorLockerEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
+{
+	if (Click.GetKey() != EKeys::LeftMouseButton)
+	{
+		return false;
+	}
+
+	if (!IsAppropriateProxy(HitProxy))
+	{
+		return ILegacyEdModeViewportInterface::HandleClick(InViewportClient, HitProxy, Click);
+	}
+
+	return SelectFirstUnlockedActor(InViewportClient, Click);
 }
 
 FWidgetPath UActorLockerEditorMode::GetWidgetPath(const FInputEvent& Event) const
@@ -205,5 +221,89 @@ void UActorLockerEditorMode::CheckLockedActorsSelection() const
 		Selection->Deselect(ActorToDeselect);
 	}
 }
+
+bool UActorLockerEditorMode::IsAppropriateProxy(HHitProxy* HitProxy) const
+{
+	const auto ActorHitProxy = HitProxyCast<HActor>(HitProxy);
+	if (!HitProxy)
+	{
+		return false;
+	}
+
+	const auto LockerManager = UActorLockerManager::GetActorLockerManager();
+	const auto ClickedActor = ActorHitProxy->Actor;
+	return IsValid(ClickedActor) && LockerManager->IsActorLocked(ClickedActor);
+}
+
+bool UActorLockerEditorMode::SelectFirstUnlockedActor(const FEditorViewportClient* InViewportClient, const FViewportClick& Click) const
+{
+	const auto World = InViewportClient->GetWorld();
+	const auto bOrtho = InViewportClient->IsOrtho();
+	const auto Length = bOrtho ? InViewportClient->GetOrthoZoom() : HALF_WORLD_MAX1;
+	const auto Direction = Click.GetDirection();
+
+	const auto ClickOrigin = Click.GetOrigin();
+	const auto ViewportType = InViewportClient->GetViewportType();
+	const auto Start = GetTraceStart(ClickOrigin, Direction, Length, ViewportType);
+	const auto End = GetTraceEnd(Start, Direction, Length);
+
+	TArray<FHitResult> HitResults;
+	FCollisionQueryParams QueryParams = FCollisionQueryParams::DefaultQueryParam;
+	QueryParams.bTraceComplex = true;
+	World->LineTraceMultiByObjectType(HitResults, Start, End, FCollisionObjectQueryParams::AllObjects, QueryParams);
+
+	const auto LockerManager = UActorLockerManager::GetActorLockerManager();
+	for (const auto& HitResult : HitResults)
+	{
+		const auto HitActor = HitResult.GetActor();
+		if (IsValid(HitActor) && !LockerManager->IsActorLocked(HitActor))
+		{
+			GEditor->SelectActor(HitActor, true, true);
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+FVector UActorLockerEditorMode::GetTraceStart(const FVector& InClickOrigin , const FVector& InDirection, const float InOrthoHeight, const ELevelViewportType InViewportType) const
+{
+	auto NewClickOrigin = InClickOrigin;
+	switch (InViewportType)
+	{
+	case LVT_OrthoXY:
+	case LVT_OrthoXZ:
+	case LVT_OrthoYZ:
+	case LVT_OrthoNegativeXY:
+	case LVT_OrthoNegativeXZ:
+	case LVT_OrthoNegativeYZ:
+		{
+			NewClickOrigin.X = FMath::IsNearlyZero(InDirection.X) ? NewClickOrigin.X : -InOrthoHeight * InDirection.X;
+			NewClickOrigin.Y = FMath::IsNearlyZero(InDirection.Y) ? NewClickOrigin.Y : -InOrthoHeight * InDirection.Y;
+			NewClickOrigin.Z = FMath::IsNearlyZero(InDirection.Z) ? NewClickOrigin.Z : -InOrthoHeight * InDirection.Z;
+			break;
+		}
+	case LVT_Perspective:
+	case LVT_OrthoFreelook:
+		{
+			break;
+		}
+	default: checkNoEntry();
+	}
+
+	return NewClickOrigin;
+}
+
+FVector UActorLockerEditorMode::GetTraceEnd(const FVector& InStart, const FVector& InDirection, const float InLength) const
+{
+	const auto End = FVector(
+		FMath::IsNearlyZero(InDirection.X) ? InStart.X : InDirection.X * InLength,
+		FMath::IsNearlyZero(InDirection.Y) ? InStart.Y : InDirection.Y * InLength,
+		FMath::IsNearlyZero(InDirection.Z) ? InStart.Z : InDirection.Z * InLength
+	);
+
+	return End;
+}
+
 
 #undef LOCTEXT_NAMESPACE
