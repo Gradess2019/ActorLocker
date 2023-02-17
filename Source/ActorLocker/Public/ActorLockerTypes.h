@@ -61,3 +61,12 @@ public:
 		return *this;
 	}
 };
+
+
+UENUM()
+enum class EActorLockerInteractionType : uint8
+{
+	None,
+	Outliner,
+	Ignored
+};

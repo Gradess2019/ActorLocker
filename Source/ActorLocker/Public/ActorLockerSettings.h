@@ -50,7 +50,20 @@ public:
 #pragma region EditorMode
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Editor Mode")
 	bool bSelectLockedActorsInOutliner = true;
+
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker Editor Mode")
+	TSet<FName> OutlinerWidgetTypes;
+	
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker Editor Mode")
+	TSet<FName> MenuWidgetTypes;
+	
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker Editor Mode")
+	TSet<FName> LockerWidgetTypes;
+	
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker Editor Mode")
+	TSet<FName> IgnoredWidgetTypes;
 #pragma endregion EditorMode
 
+public:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 };

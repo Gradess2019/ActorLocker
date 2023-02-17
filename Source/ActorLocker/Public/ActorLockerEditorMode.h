@@ -3,22 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActorLockerTypes.h"
 #include "Tools/UEdMode.h"
+#include "Tools/LegacyEdModeInterfaces.h"
 #include "ActorLockerEditorMode.generated.h"
 
+struct HActor;
 class IAssetGenerationAPI;
 
 /**
  * 
  */
 UCLASS()
-class ACTORLOCKER_API UActorLockerEditorMode : public UEdMode, public FSlateDebugging::IWidgetInputRoutingEvent
+class ACTORLOCKER_API UActorLockerEditorMode : public UEdMode, public FSlateDebugging::IWidgetInputRoutingEvent, public ILegacyEdModeViewportInterface
 {
 	GENERATED_BODY()
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
-	bool bOutlinerInteraction = false;
+	EActorLockerInteractionType InteractionType = EActorLockerInteractionType::None;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
 	TSet<FName> OutlinerWidgetTypes;
@@ -28,6 +31,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
 	TSet<FName> LockerWidgetTypes;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Actor Locker Editor Mode")
+	TSet<FName> IgnoredWidgetTypes;
 
 	TSet<uint32> SelectedItems;	
 
@@ -46,6 +52,8 @@ public:
 	void UnregisterEvent();
 	void RegisterEvent();
 
+	void UpdateWidgetTypes();
+
 	//~ Begin FSlateDebugging::IWidgetInputRoutingEvent Interface
 	virtual void OnProcessInput(ESlateDebuggingInputEvent InputEventType, const FInputEvent& Event) override;
 	virtual void OnPreProcessInput(ESlateDebuggingInputEvent InputEventType, const TCHAR* InputPrecessorName, bool bHandled) override {}
@@ -55,9 +63,18 @@ public:
 	virtual void OnInputProcessed(ESlateDebuggingInputEvent InputEventType) override {}
 	//~ End FSlateDebugging::IWidgetInputRoutingEvent Interface
 
+	//~ Begin ILegacyEdModeViewportInterface Interface
+	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
+	//~ End ILegacyEdModeViewportInterface Interface
+
 protected:
 	virtual FWidgetPath GetWidgetPath(const FInputEvent& Event) const;
-	virtual bool IsOutlinerInteraction(const FWidgetPath& Path, uint32& OutItemId) const;
+	virtual EActorLockerInteractionType GetInteractionType(const FWidgetPath& Path, uint32& OutItemId) const;
 	virtual void CheckLockedActorsSelection() const;
+
+	bool IsAppropriateProxy(HHitProxy* HitProxy) const;
+	bool SelectFirstUnlockedActor(const FEditorViewportClient* InViewportClient, const FViewportClick& Click) const;
+	FVector GetTraceStart(const FVector& InClickOrigin , const FVector& InDirection, const float InOrthoHeight, const ELevelViewportType InViewportType) const;
+	FVector GetTraceEnd(const FVector& InStart , const FVector& InDirection, const float InLength) const;
 	
 };
