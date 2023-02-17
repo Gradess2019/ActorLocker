@@ -30,9 +30,7 @@ UActorLockerEditorMode::UActorLockerEditorMode()
 		FSlateIcon(),
 		false, 0);
 
-	OutlinerWidgetTypes = {"SSceneOutlinerTreeRow"};
-	MenuWidgetTypes = {"SMenuEntryButton"};
-	LockerWidgetTypes = {"SLockWidget"};
+	UpdateWidgetTypes();
 }
 
 void UActorLockerEditorMode::Enter()
@@ -94,6 +92,15 @@ void UActorLockerEditorMode::RegisterEvent()
 	FSlateDebugging::RegisterWidgetInputRoutingEvent(this);
 }
 
+void UActorLockerEditorMode::UpdateWidgetTypes()
+{
+	const auto Settings = GetDefault<UActorLockerSettings>();
+	OutlinerWidgetTypes = Settings->OutlinerWidgetTypes;
+	MenuWidgetTypes = Settings->MenuWidgetTypes;
+	LockerWidgetTypes = Settings->LockerWidgetTypes;
+	IgnoredWidgetTypes = Settings->IgnoredWidgetTypes;
+}
+
 void UActorLockerEditorMode::UnregisterEvent()
 {
 	FSlateDebugging::UnregisterWidgetInputRoutingEvent(this);
@@ -112,15 +119,22 @@ void UActorLockerEditorMode::OnProcessInput(ESlateDebuggingInputEvent InputEvent
 		const auto WidgetPath = GetWidgetPath(Event);
 
 		uint32 ItemId = 0;
-		bOutlinerInteraction = IsOutlinerInteraction(WidgetPath, ItemId);
+		InteractionType = GetInteractionType(WidgetPath, ItemId);
 
-		if (bOutlinerInteraction)
+		switch (InteractionType)
 		{
-			SelectedItems.Add(ItemId);
-		}
-		else
-		{
-			CheckLockedActorsSelection();
+		case EActorLockerInteractionType::None:
+			{
+				CheckLockedActorsSelection();
+				break;
+			}
+		case EActorLockerInteractionType::Outliner:
+			{
+				SelectedItems.Add(ItemId);
+				break;
+			}
+		case EActorLockerInteractionType::Ignored: break;
+		default: checkNoEntry();
 		}
 	}
 }
@@ -151,14 +165,14 @@ FWidgetPath UActorLockerEditorMode::GetWidgetPath(const FInputEvent& Event) cons
 	return FSlateApplication::Get().LocateWindowUnderMouse(Position, Windows);;
 }
 
-bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path, uint32& OutItemId) const
+EActorLockerInteractionType UActorLockerEditorMode::GetInteractionType(const FWidgetPath& Path, uint32& OutItemId) const
 {
 	if (!Path.IsValid())
 	{
-		return false;
+		return EActorLockerInteractionType::None;
 	}
 
-	auto bResult = false;
+	auto bResult = EActorLockerInteractionType::None;
 	const auto& Widgets = Path.Widgets.GetInternalArray();
 	TSharedPtr<SSceneOutlinerTreeRow> Row = nullptr;
 	TSharedPtr<SSceneOutlinerTreeView> Tree = nullptr;
@@ -167,15 +181,21 @@ bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path, uint
 	{
 		const auto Type = ArrangedWidget.Widget->GetType();
 
-		if (bOutlinerInteraction && MenuWidgetTypes.Contains(Type))
+		if (InteractionType == EActorLockerInteractionType::Outliner && MenuWidgetTypes.Contains(Type))
 		{
-			bResult = true;
+			bResult = EActorLockerInteractionType::Outliner;
 			break;
 		}
 
 		if (LockerWidgetTypes.Contains(Type))
 		{
-			bResult = false;
+			bResult = EActorLockerInteractionType::None;
+			break;
+		}
+
+		if (IgnoredWidgetTypes.Contains(Type))
+		{
+			bResult = EActorLockerInteractionType::Ignored;
 			break;
 		}
 
@@ -194,7 +214,7 @@ bool UActorLockerEditorMode::IsOutlinerInteraction(const FWidgetPath& Path, uint
 			const TSharedPtr<ISceneOutlinerTreeItem>* Item = Tree->ItemFromWidget(Row.Get());
 			const auto Id = FLockerTreeItem::GetId(Item->Get()->AsWeak());
 			OutItemId = Id;
-			bResult = true;
+			bResult = EActorLockerInteractionType::Outliner;
 		}
 	}
 
@@ -262,11 +282,11 @@ bool UActorLockerEditorMode::SelectFirstUnlockedActor(const FEditorViewportClien
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
-FVector UActorLockerEditorMode::GetTraceStart(const FVector& InClickOrigin , const FVector& InDirection, const float InOrthoHeight, const ELevelViewportType InViewportType) const
+FVector UActorLockerEditorMode::GetTraceStart(const FVector& InClickOrigin, const FVector& InDirection, const float InOrthoHeight, const ELevelViewportType InViewportType) const
 {
 	auto NewClickOrigin = InClickOrigin;
 	switch (InViewportType)
