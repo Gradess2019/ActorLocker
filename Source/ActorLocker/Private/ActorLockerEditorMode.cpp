@@ -151,6 +151,11 @@ bool UActorLockerEditorMode::HandleClick(FEditorViewportClient* InViewportClient
 		return ILegacyEdModeViewportInterface::HandleClick(InViewportClient, HitProxy, Click);
 	}
 
+	if (!Click.IsControlDown())
+	{
+		GEditor->GetSelectedActors()->DeselectAll();
+	}
+
 	return SelectFirstUnlockedActor(InViewportClient, Click);
 }
 
@@ -245,7 +250,7 @@ void UActorLockerEditorMode::CheckLockedActorsSelection() const
 bool UActorLockerEditorMode::IsAppropriateProxy(HHitProxy* HitProxy) const
 {
 	const auto ActorHitProxy = HitProxyCast<HActor>(HitProxy);
-	if (!HitProxy)
+	if (!ActorHitProxy)
 	{
 		return false;
 	}
