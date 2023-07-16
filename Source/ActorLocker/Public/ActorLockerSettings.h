@@ -64,6 +64,12 @@ public:
 	TSet<FName> IgnoredWidgetTypes;
 #pragma endregion EditorMode
 
+#pragma region PluginStateService
+	// Checks the plugin state (enabled / disabled) every X seconds to warn user that he need to unlock all actors before disabling the plugin
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Plugin State Service")
+	float CheckPluginStateInterval = 0.05f;
+#pragma endregion PluginStateService
+
 public:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 };
