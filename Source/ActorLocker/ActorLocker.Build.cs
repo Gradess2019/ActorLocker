@@ -43,7 +43,8 @@ public class ActorLocker : ModuleRules
 				"UnrealEd",
 				"InputCore",
 				"LevelEditor",
-				"EditorFramework",
+				"EditorFramework", 
+				"PythonScriptPlugin",
 				
 #if !UE_5_1_OR_LATER
 				"Foliage"

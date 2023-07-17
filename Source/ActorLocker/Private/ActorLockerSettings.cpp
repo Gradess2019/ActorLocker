@@ -8,7 +8,7 @@
 UActorLockerSettings::UActorLockerSettings()
 {
 	LockedTag = TEXT("ActorLocked");
-	
+
 	LockObject = FInputChord(EKeys::Comma, EModifierKey::Alt);
 	UnlockObject = FInputChord(EKeys::Period, EModifierKey::Alt);
 	LockAllObjects = FInputChord(EKeys::Comma, EModifierKey::Alt | EModifierKey::Shift);
@@ -19,6 +19,9 @@ UActorLockerSettings::UActorLockerSettings()
 	MenuWidgetTypes = {"SMenuEntryButton"};
 	LockerWidgetTypes = {"SLockWidget"};
 	IgnoredWidgetTypes = {"SActorDetails"};
+
+	PluginStateServiceWarningMessage = FText::FromString(TEXT("Warning: ActorLocker plugin has been disabled. All locked actors will remain in their locked position after restarting. To manually unlock them, go to Context Menu -> \"Transform\" -> \"Lock Actor Movement\". Run a Python script to unlock all actors automatically? Note: It may take significant time due to your project's size."));
+	ScriptFileName = TEXT("unlock_all_actors.py");
 }
 
 void UActorLockerSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

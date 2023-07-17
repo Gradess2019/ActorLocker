@@ -2,6 +2,9 @@
 
 
 #include "ActorLockerPluginStateService.h"
+#include "ActorLockerSettings.h"
+#include "IPythonScriptPlugin.h"
+#include "LevelEditor.h"
 #include "ProjectDescriptor.h"
 #include "Interfaces/IPluginManager.h"
 #include "Interfaces/IProjectManager.h"
@@ -54,7 +57,17 @@ void UActorLockerPluginStateService::Tick(float DeltaTime)
 
 	if (bStateChanged && !bEnabled)
 	{
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("You've just disabled ActorLocker plugin. Make sure that you don't have locked actors on all your maps, otherwise you will need to uncheck \"Lock Actor Movement\" manually after the restart.")));
+		const auto& Message = GetDefault<UActorLockerSettings>()->PluginStateServiceWarningMessage;
+		const auto Answer = FMessageDialog::Open(EAppMsgType::YesNo, Message);
+		if (Answer == EAppReturnType::Yes)
+		{
+			const auto& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
+			const auto& LevelEditorTab = LevelEditorModule.GetLevelEditorTab();
+			LevelEditorTab->ActivateInParent(ETabActivationCause::SetDirectly);
+
+			const auto& ScriptFileName = GetDefault<UActorLockerSettings>()->ScriptFileName;
+			IPythonScriptPlugin::Get()->ExecPythonCommand(*ScriptFileName);
+		}
 	}
 
 	bLastPluginState = bEnabled;
