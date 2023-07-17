@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "ActorLockerTypes.h"
 
-class FActorLockerMenuExtender;
 class UActorLockerManager;
+class UActorLockerPluginStateService;
+class FActorLockerMenuExtender;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorLockerManagerCreated, UActorLockerManager*);
 
@@ -18,6 +19,7 @@ public:
 	
 private:
 	TWeakObjectPtr<UActorLockerManager> ActorLockerManager;
+	TWeakObjectPtr<UActorLockerPluginStateService> PluginStateService;
 	TSharedPtr<FActorLockerMenuExtender> MenuExtender;
 
 #if OLDER_THAN_UE_5_1
@@ -33,7 +35,7 @@ public:
 	TWeakObjectPtr<UActorLockerManager> GetActorLockerManager(const bool bRequired = false);
 
 protected:
-	void CreateActorLockerManager(const FString& Filename, bool bAsTemplate);
+	void OnMapOpened(const FString& Filename, bool bAsTemplate);
 	void CreateActorLockerManager();
 	void CreateActorLockerMenuExtender();
 	

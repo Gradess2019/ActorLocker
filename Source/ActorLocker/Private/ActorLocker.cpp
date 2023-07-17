@@ -4,6 +4,7 @@
 #include "ActorLockerCommandManager.h"
 #include "ActorLockerManager.h"
 #include "ActorLockerMenuExtender.h"
+#include "ActorLockerPluginStateService.h"
 #include "ActorLockerSettings.h"
 #include "ActorLockerStyle.h"
 #include "ISettingsModule.h"
@@ -45,10 +46,10 @@ void FActorLockerModule::StartupModule()
 	{
 		CreateActorLockerManager();
 		FWorldDelegates::OnPreWorldInitialization.Remove(OnPreWorldInitializationHandle);
-		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+		FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::OnMapOpened);
 	});
 #else
-	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::CreateActorLockerManager);
+	FEditorDelegates::OnMapOpened.AddRaw(this, &FActorLockerModule::OnMapOpened);
 #endif
 	
 }
@@ -75,9 +76,15 @@ TWeakObjectPtr<UActorLockerManager> FActorLockerModule::GetActorLockerManager(co
 	return ActorLockerManager;
 }
 
-void FActorLockerModule::CreateActorLockerManager(const FString& Filename, bool bAsTemplate)
+void FActorLockerModule::OnMapOpened(const FString& Filename, bool bAsTemplate)
 {
 	CreateActorLockerManager();
+
+	if (!PluginStateService.IsValid())
+	{
+		PluginStateService = NewObject<UActorLockerPluginStateService>();
+		PluginStateService->AddToRoot();
+	}
 }
 
 void FActorLockerModule::CreateActorLockerManager()

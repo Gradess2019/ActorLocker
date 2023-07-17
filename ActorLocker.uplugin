@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/Gradess2019/ActorLocker",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/9280e03740c64592ad81b9fe751cec7e",
 	"SupportURL": "https://discord.gg/zFK38y68tK",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
@@ -24,6 +24,12 @@
 				"Mac", 
 				"Linux" 
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
 		}
 	]
 }
