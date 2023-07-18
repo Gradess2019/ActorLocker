@@ -55,7 +55,7 @@ void UActorLockerEditorMode::Exit()
 
 bool UActorLockerEditorMode::IsCompatibleWith(FEditorModeID OtherModeID) const
 {
-	static const TSet<FName> CompatibleModes = {TEXT("EM_Default")};
+	const TSet<FName>& CompatibleModes = GetDefault<UActorLockerSettings>()->CompatibleModes;
 	const auto bCompatible = CompatibleModes.Contains(OtherModeID);
 	return bCompatible;
 }

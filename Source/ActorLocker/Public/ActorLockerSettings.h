@@ -28,6 +28,12 @@ public:
 
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General", meta = (EditCondition = "bSaveLockedState"))
 	FName LockedTag;
+
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General", meta = (ConfigRestartRequired = true))
+	TSet<FName> CompatibleModes;
+
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
+	bool bDeveloperMode = false;
 #pragma endregion General
 
 #pragma region Hotkeys
@@ -63,6 +69,18 @@ public:
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker Editor Mode")
 	TSet<FName> IgnoredWidgetTypes;
 #pragma endregion EditorMode
+
+#pragma region PluginStateService
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Plugin State Service", meta = (EditCondition = "bDeveloperMode", EditConditionHides))
+	FText PluginStateServiceWarningMessage;
+
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Plugin State Service", meta = (EditCondition = "bDeveloperMode", EditConditionHides))
+	FString ScriptFileName;
+	
+	// Checks the plugin state (enabled / disabled) every X seconds to warn user that he need to unlock all actors before disabling the plugin
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | Plugin State Service", meta = (EditCondition = "bDeveloperMode", EditConditionHides))
+	float CheckPluginStateInterval = 0.05f;
+#pragma endregion PluginStateService
 
 public:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
