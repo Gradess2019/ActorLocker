@@ -29,6 +29,9 @@ public:
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General", meta = (EditCondition = "bSaveLockedState"))
 	FName LockedTag;
 
+	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General", meta = (ConfigRestartRequired = true))
+	TSet<FName> CompatibleModes;
+
 	UPROPERTY(Config, BlueprintReadOnly, EditAnywhere, Category = "Actor Locker | General")
 	bool bDeveloperMode = false;
 #pragma endregion General
