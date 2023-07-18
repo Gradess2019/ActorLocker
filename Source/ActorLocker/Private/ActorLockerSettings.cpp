@@ -4,10 +4,19 @@
 #include "ActorLockerSettings.h"
 #include "ActorLockerEditorMode.h"
 #include "EditorModeManager.h"
+#include "EditorModes.h"
 
 UActorLockerSettings::UActorLockerSettings()
 {
 	LockedTag = TEXT("ActorLocked");
+	CompatibleModes = {
+		FBuiltinEditorModes::EM_None,
+		FBuiltinEditorModes::EM_Default,
+		FBuiltinEditorModes::EM_MeshPaint,
+		TEXT("EM_ModelingToolsEditorMode"),
+		TEXT("EM_FractureEditorMode"),
+		TEXT("EM_Geometry"),
+	};
 
 	LockObject = FInputChord(EKeys::Comma, EModifierKey::Alt);
 	UnlockObject = FInputChord(EKeys::Period, EModifierKey::Alt);
@@ -51,6 +60,6 @@ void UActorLockerSettings::PostEditChangeChainProperty(FPropertyChangedChainEven
 		const auto Mode = Cast<UActorLockerEditorMode>(Tools.GetActiveScriptableMode(UActorLockerEditorMode::EM_ActorLockerEditorModeId));
 		Mode->UpdateWidgetTypes();
 	}
-	
+
 	UObject::PostEditChangeChainProperty(PropertyChangedEvent);
 }
