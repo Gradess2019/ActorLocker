@@ -3,7 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 0
+#include "SceneOutlinerFwd.h"
+#else
 #include "SceneOutliner/Public/SceneOutlinerFwd.h"
+#endif
+
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Views/STableRow.h"
 #include "ActorLockerTypes.h"
